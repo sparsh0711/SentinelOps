@@ -5,14 +5,21 @@ from urllib.parse import parse_qs
 
 from . import __version__
 from .errors import ApiError
-from .validation import bounded_int, validate_analysis, validate_evtx_filename
+from .validation import (
+    bounded_int,
+    validate_analysis,
+    validate_detection_settings,
+    validate_evtx_filename,
+    validate_rule,
+)
 from .windows import ALLOWED_CHANNELS, collect, parse_evtx
 
 
 class Api:
-    def __init__(self, settings, database):
+    def __init__(self, settings, database, rules):
         self.settings = settings
         self.database = database
+        self.rules = rules
 
     def get(self, path, query):
         params = parse_qs(query)
@@ -29,6 +36,12 @@ class Api:
                 params.get("limit", [100])[0], "limit", 100, maximum=100
             )
             return {"analyses": self.database.list_analyses(limit)}, 200
+        if path == "/api/v2/rules":
+            return {"rules": self.rules.list_rules()}, 200
+        if path.startswith("/api/v2/rules/"):
+            return self.rules.get_rule(path.rsplit("/", 1)[-1]), 200
+        if path == "/api/v2/detection-settings":
+            return self.rules.get_settings(), 200
         if path.startswith("/api/v2/analyses/"):
             try:
                 analysis_id = int(path.rsplit("/", 1)[-1])
@@ -69,6 +82,22 @@ class Api:
             analysis = validate_analysis(payload)
             analysis_id = self.database.save_analysis(analysis)
             return {"saved": True, "id": analysis_id}, 201
+        if path == "/api/v2/rules":
+            rule = validate_rule(payload)
+            return self.rules.save_rule(rule, source="custom"), 201
+        if path == "/api/v2/rules/toggle":
+            rule_id = str(payload.get("id", ""))
+            return self.rules.set_enabled(rule_id, bool(payload.get("enabled"))), 200
+        if path == "/api/v2/rules/delete":
+            rule_id = str(payload.get("id", ""))
+            try:
+                self.rules.delete_rule(rule_id)
+            except ValueError as error:
+                raise ApiError(str(error), code="builtin_rule") from error
+            return {"deleted": True, "id": rule_id}, 200
+        if path == "/api/v2/detection-settings":
+            settings = validate_detection_settings(payload)
+            return self.rules.save_settings(settings), 200
         if path == "/api/v2/checkpoints/reset":
             channel = str(payload.get("channel", ""))
             if channel not in ALLOWED_CHANNELS:
