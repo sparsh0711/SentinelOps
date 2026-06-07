@@ -26,4 +26,26 @@ export const api = {
     headers: { "Content-Type": "application/octet-stream", "X-Filename": encodeURIComponent(file.name) },
     body: file,
   }),
+  listRules: () => request("/rules"),
+  saveRule: (rule) => request("/rules", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(rule),
+  }),
+  toggleRule: (id, enabled) => request("/rules/toggle", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, enabled }),
+  }),
+  deleteRule: (id) => request("/rules/delete", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  }),
+  getDetectionSettings: () => request("/detection-settings"),
+  saveDetectionSettings: (settings) => request("/detection-settings", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(settings),
+  }),
 };
