@@ -1,0 +1,60 @@
+[
+  {
+    "id": "sentinelops-auth-bruteforce",
+    "title": "Brute Force Login Pattern",
+    "description": "Multiple failed authentication events from one source address.",
+    "status": "experimental",
+    "level": "High",
+    "enabled": true,
+    "confidence": 90,
+    "logsource": {"product": "windows", "category": "authentication"},
+    "match": {"all": [{"field": "status", "operator": "equals", "value": "failed"}]},
+    "threshold": {"count": 5, "groupBy": "sourceIp", "windowSeconds": 300},
+    "suppresses": ["sentinelops-single-auth-failure"],
+    "mitre": {"id": "T1110.001", "name": "Password Guessing", "tactic": "Credential Access"},
+    "tags": ["attack.credential_access", "attack.t1110.001"],
+    "falsepositives": ["Authorized password testing", "Misconfigured service accounts"]
+  },
+  {
+    "id": "sentinelops-powershell-suspicious",
+    "title": "Suspicious PowerShell Execution",
+    "description": "PowerShell command contains an encoded, download, credential, or defense-bypass indicator.",
+    "status": "experimental",
+    "level": "High",
+    "enabled": true,
+    "confidence": 85,
+    "logsource": {"product": "windows", "category": "process_creation"},
+    "match": {"all": [{"field": "command", "operator": "regex", "value": "(-enc(?:odedcommand)?\\s+|invoke-expression|\\biex\\b|downloadstring|invoke-webrequest|frombase64string|amsiutils|invoke-mimikatz|sekurlsa|bypass)"}]},
+    "mitre": {"id": "T1059.001", "name": "PowerShell", "tactic": "Execution"},
+    "tags": ["attack.execution", "attack.t1059.001"],
+    "falsepositives": ["Administrative automation using encoded scripts"]
+  },
+  {
+    "id": "sentinelops-privilege-activity",
+    "title": "Possible Privilege Escalation",
+    "description": "Sensitive privilege, service installation, group membership, or audit-clearing activity.",
+    "status": "experimental",
+    "level": "High",
+    "enabled": true,
+    "confidence": 80,
+    "logsource": {"product": "windows", "category": "security"},
+    "match": {"any": [{"field": "eventId", "operator": "in", "value": ["4728", "4732", "4756", "7045", "1102"]}, {"field": "message", "operator": "regex", "value": "(domain admins|administrators group|sedebugprivilege|seimpersonateprivilege|audit log was cleared|new service installed)"}]},
+    "mitre": {"id": "T1068", "name": "Exploitation for Privilege Escalation", "tactic": "Privilege Escalation"},
+    "tags": ["attack.privilege_escalation", "attack.t1068"],
+    "falsepositives": ["Approved administrator changes", "Software deployment"]
+  },
+  {
+    "id": "sentinelops-single-auth-failure",
+    "title": "Failed Login Attempt",
+    "description": "Authentication failure requiring environmental context.",
+    "status": "experimental",
+    "level": "Low",
+    "enabled": true,
+    "confidence": 45,
+    "logsource": {"product": "windows", "category": "authentication"},
+    "match": {"all": [{"field": "status", "operator": "equals", "value": "failed"}]},
+    "mitre": {"id": "T1110", "name": "Brute Force", "tactic": "Credential Access"},
+    "tags": ["attack.credential_access", "attack.t1110"],
+    "falsepositives": ["User typing an incorrect password"]
+  }
+]
