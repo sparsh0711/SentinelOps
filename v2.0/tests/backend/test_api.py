@@ -6,6 +6,7 @@ from backend.api import Api
 from backend.config import Settings
 from backend.database import Database
 from backend.errors import ApiError
+from backend.rules import RuleRepository
 
 
 class ApiTests(unittest.TestCase):
@@ -23,7 +24,9 @@ class ApiTests(unittest.TestCase):
         )
         self.database = Database(self.settings.database)
         self.database.migrate()
-        self.api = Api(self.settings, self.database)
+        self.rules = RuleRepository(self.database)
+        self.rules.seed_builtin_rules()
+        self.api = Api(self.settings, self.database, self.rules)
 
     def tearDown(self):
         self.temporary.cleanup()
@@ -52,6 +55,27 @@ class ApiTests(unittest.TestCase):
             self.api.get("/api/v2/missing", "")
         self.assertEqual(context.exception.code, "not_found")
         self.assertEqual(context.exception.status, 404)
+
+    def test_rules_and_detection_settings_round_trip(self):
+        listing, status = self.api.get("/api/v2/rules", "")
+        self.assertEqual(status, 200)
+        self.assertGreaterEqual(len(listing["rules"]), 4)
+        settings, _ = self.api.post_json(
+            "/api/v2/detection-settings",
+            {
+                "allowlists": {
+                    "users": ["svc_backup"],
+                    "hosts": [],
+                    "sourceIps": [],
+                    "processes": [],
+                },
+                "suppressionWindowSeconds": 600,
+                "severityOverrides": {},
+                "thresholdOverrides": {},
+            },
+        )
+        self.assertEqual(settings["allowlists"]["users"], ["svc_backup"])
+        self.assertEqual(settings["suppressionWindowSeconds"], 600)
 
 
 if __name__ == "__main__":
