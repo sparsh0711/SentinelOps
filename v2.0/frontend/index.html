@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="SentinelOps v2 security log analyzer" />
+    <title>SentinelOps v2</title>
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside>
+        <div class="brand"><span>SO</span><div><strong>SentinelOps</strong><small>v2.0 foundation</small></div></div>
+        <nav>
+          <button class="active">Overview</button>
+          <button disabled>Incidents <span>Phase 4</span></button>
+          <button disabled>Sigma rules <span>Phase 2</span></button>
+        </nav>
+        <div class="service"><i id="service-dot"></i><div><strong id="service-label">Connecting</strong><small>API v2</small></div></div>
+      </aside>
+
+      <main>
+        <header>
+          <div><p>SOC / OVERVIEW</p><h1>Security overview</h1></div>
+          <div class="actions">
+            <span class="source" id="source-name">No logs loaded</span>
+            <button id="open-import">Analyze logs</button>
+          </div>
+        </header>
+
+        <section class="intro">
+          <div><span class="version">ALPHA FOUNDATION</span><h2 id="posture">Ready for real telemetry</h2><p>Analyze local logs with a modular detection pipeline.</p></div>
+          <div class="risk"><span>Overall risk</span><strong id="risk-score">0</strong><em id="risk-level">LOW</em></div>
+        </section>
+
+        <section class="metrics">
+          <article><span>Total events</span><strong id="event-count">0</strong><small>Normalized records</small></article>
+          <article><span>Security alerts</span><strong id="alert-count">0</strong><small id="high-count">0 high severity</small></article>
+          <article><span>Source addresses</span><strong id="ip-count">0</strong><small>Observed in telemetry</small></article>
+          <article><span>MITRE techniques</span><strong id="mitre-count">0</strong><small>Mapped detections</small></article>
+        </section>
+
+        <section class="grid">
+          <article class="panel alerts-panel">
+            <div class="panel-head"><div><h3>Priority alerts</h3><p>Rule matches requiring review</p></div></div>
+            <div id="alerts" class="list empty">Analyze logs to populate findings.</div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><div><h3>MITRE ATT&CK</h3><p>Technique coverage</p></div></div>
+            <div id="mitre" class="list empty">No techniques detected.</div>
+          </article>
+        </section>
+
+        <section class="panel">
+          <div class="panel-head"><div><h3>Event explorer</h3><p id="event-summary">No events loaded</p></div><input id="event-search" placeholder="Filter events" /></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Time</th><th>Event</th><th>User</th><th>Source IP</th><th>Host</th><th>Status</th></tr></thead>
+              <tbody id="events"><tr><td colspan="6" class="empty-cell">No events to display.</td></tr></tbody>
+            </table>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div class="modal" id="import-modal" hidden>
+      <div class="dialog">
+        <div class="dialog-head"><div><span>LOCAL ANALYZER</span><h2>Analyze security logs</h2></div><button class="close" id="close-import">Close</button></div>
+        <label class="drop">
+          <input id="file-input" type="file" accept=".evtx,.json,.jsonl,.csv,.log,.txt" />
+          <strong>Choose an EVTX, JSON, JSONL, CSV, LOG, or TXT file</strong>
+          <span id="file-name">No file selected</span>
+        </label>
+        <div class="divider">or paste structured logs</div>
+        <textarea id="log-input" placeholder='[{"timestamp":"2026-01-01T10:00:00Z","event_id":4625,"user":"analyst","source_ip":"203.0.113.10"}]'></textarea>
+        <p class="error" id="error"></p>
+        <div class="dialog-actions"><button id="run-analysis">Run analysis</button></div>
+      </div>
+    </div>
+
+    <script type="module" src="js/main.js"></script>
+  </body>
+</html>
