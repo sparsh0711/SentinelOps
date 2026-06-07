@@ -6,6 +6,7 @@ from .api import Api
 from .config import Settings
 from .database import Database
 from .logging_config import configure_logging
+from .rules import RuleRepository
 from .server import SentinelHandler
 
 
@@ -14,7 +15,9 @@ def create_server(settings=None):
     configure_logging(settings.log_level)
     database = Database(settings.database)
     database.migrate()
-    api = Api(settings, database)
+    rules = RuleRepository(database)
+    rules.seed_builtin_rules()
+    api = Api(settings, database, rules)
     handler = partial(SentinelHandler, api=api, settings=settings)
     return ThreadingHTTPServer((settings.host, settings.port), handler)
 
