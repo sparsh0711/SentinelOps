@@ -10,11 +10,11 @@
   <body>
     <div class="shell">
       <aside>
-        <div class="brand"><span>SO</span><div><strong>SentinelOps</strong><small>v2.0 foundation</small></div></div>
+        <div class="brand"><span>SO</span><div><strong>SentinelOps</strong><small>v2.0 detection engine</small></div></div>
         <nav>
-          <button class="active">Overview</button>
+          <button class="active" data-view="overview">Overview</button>
           <button disabled>Incidents <span>Phase 4</span></button>
-          <button disabled>Sigma rules <span>Phase 2</span></button>
+          <button data-view="rules">Detection rules</button>
         </nav>
         <div class="service"><i id="service-dot"></i><div><strong id="service-label">Connecting</strong><small>API v2</small></div></div>
       </aside>
@@ -28,8 +28,9 @@
           </div>
         </header>
 
+        <div id="overview-view" class="view active">
         <section class="intro">
-          <div><span class="version">ALPHA FOUNDATION</span><h2 id="posture">Ready for real telemetry</h2><p>Analyze local logs with a modular detection pipeline.</p></div>
+          <div><span class="version">PHASE 2 ENGINE</span><h2 id="posture">Ready for real telemetry</h2><p>Analyze local logs with a modular detection pipeline.</p></div>
           <div class="risk"><span>Overall risk</span><strong id="risk-score">0</strong><em id="risk-level">LOW</em></div>
         </section>
 
@@ -60,6 +61,67 @@
             </table>
           </div>
         </section>
+        </div>
+
+        <div id="rules-view" class="view">
+          <section class="intro">
+            <div><span class="version">PHASE 2</span><h2>Detection engineering</h2><p>Manage Sigma-inspired rules, thresholds, allowlists, and suppression.</p></div>
+            <div class="rule-total"><strong id="rule-count">0</strong><span>rules loaded</span></div>
+          </section>
+
+          <section class="rules-layout">
+            <article class="panel">
+              <div class="panel-head"><div><h3>Rule library</h3><p>Enable, override, or remove custom rules.</p></div><label class="import-rules">Import JSON<input id="rule-import" type="file" accept=".json" /></label></div>
+              <div id="rule-list" class="rule-list empty">Connect to API v2 to load rules.</div>
+            </article>
+
+            <article class="panel">
+              <div class="panel-head"><div><h3>Create or update rule</h3><p>Sigma-inspired metadata with a focused condition builder.</p></div></div>
+              <form id="rule-form" class="rule-form">
+                <div class="form-grid">
+                  <label>Rule ID<input id="rule-id" required placeholder="custom-suspicious-process" /></label>
+                  <label>Title<input id="rule-title" required placeholder="Suspicious Process Execution" /></label>
+                  <label>Severity<select id="rule-level"><option>Low</option><option selected>Medium</option><option>High</option></select></label>
+                  <label>Confidence<input id="rule-confidence" type="number" min="0" max="100" value="70" /></label>
+                  <label>Field<select id="rule-field"><option>eventId</option><option>status</option><option>user</option><option>sourceIp</option><option>host</option><option>process</option><option selected>command</option><option>message</option><option>all</option></select></label>
+                  <label>Operator<select id="rule-operator"><option>equals</option><option>contains</option><option selected>regex</option><option>in</option><option>exists</option></select></label>
+                  <label class="wide">Match value<input id="rule-value" required placeholder="rundll32|regsvr32" /></label>
+                  <label>Threshold count<input id="rule-threshold-count" type="number" min="1" placeholder="Optional" /></label>
+                  <label>Window seconds<input id="rule-window" type="number" min="1" value="300" /></label>
+                  <label>Group by<select id="rule-group"><option value="">None</option><option>sourceIp</option><option>user</option><option>host</option><option>process</option></select></label>
+                  <label>MITRE ID<input id="rule-mitre-id" value="T1059" /></label>
+                  <label>MITRE technique<input id="rule-mitre-name" value="Command and Scripting Interpreter" /></label>
+                  <label class="wide">Description<textarea id="rule-description" required placeholder="Explain the behavior detected by this rule."></textarea></label>
+                </div>
+                <p class="error" id="rule-error"></p>
+                <button type="submit">Save rule</button>
+              </form>
+            </article>
+          </section>
+
+          <section class="grid rules-bottom">
+            <article class="panel">
+              <div class="panel-head"><div><h3>Allowlists and suppression</h3><p>One value or wildcard pattern per line.</p></div></div>
+              <form id="settings-form" class="rule-form">
+                <div class="form-grid">
+                  <label>Users<textarea id="allow-users" placeholder="svc_backup&#10;admin-*"></textarea></label>
+                  <label>Hosts<textarea id="allow-hosts" placeholder="LAB-*"></textarea></label>
+                  <label>Source IPs<textarea id="allow-ips" placeholder="10.0.2.17"></textarea></label>
+                  <label>Processes<textarea id="allow-processes" placeholder="C:\Windows\System32\trusted.exe"></textarea></label>
+                  <label>Duplicate suppression<input id="suppression-window" type="number" min="1" value="300" /><span>seconds</span></label>
+                </div>
+                <button type="submit">Save engine settings</button>
+              </form>
+            </article>
+            <article class="panel">
+              <div class="panel-head"><div><h3>Rule test bench</h3><p>Test a rule against JSON events.</p></div></div>
+              <select id="test-rule"></select>
+              <textarea id="test-events" placeholder='[{"event_id":4104,"command":"powershell.exe -EncodedCommand SQBFAFgA"}]'></textarea>
+              <button id="test-rule-button" type="button">Run rule test</button>
+              <div id="test-result" class="test-result empty">No rule test has run.</div>
+            </article>
+          </section>
+        </div>
       </main>
     </div>
 
