@@ -1,0 +1,4 @@
+sentinelops-v2.db
+__pycache__/
+*.pyc
+test-logs/*.evtx
