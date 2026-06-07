@@ -20,7 +20,10 @@ class DatabaseTests(unittest.TestCase):
             versions = connection.execute(
                 "SELECT version FROM schema_migrations"
             ).fetchall()
-        self.assertEqual([row["version"] for row in versions], ["001_initial"])
+        self.assertEqual(
+            [row["version"] for row in versions],
+            ["001_initial", "002_detection_rules"],
+        )
 
     def test_analysis_round_trip(self):
         payload = {
