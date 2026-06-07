@@ -6,6 +6,10 @@ and keeps analysis history on the local machine.
 
 ![SentinelOps dashboard analyzing a public EVTX sample](dashboard-verification.png)
 
+> **v2.0 development:** The completed Phase 1 foundation is available in
+> [`v2.0/`](v2.0/README.md). The application in the repository root remains the
+> stable v1 release.
+
 ## Highlights
 
 - Analyze Windows `.evtx`, JSON, JSONL, CSV, LOG, and TXT files
