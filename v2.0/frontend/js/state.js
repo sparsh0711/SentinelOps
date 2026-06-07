@@ -5,6 +5,13 @@ const initialState = () => ({
   riskScore: 0,
   riskLevel: "Low",
   backendOnline: false,
+  rules: [],
+  detectionSettings: {
+    allowlists: { users: [], hosts: [], sourceIps: [], processes: [] },
+    suppressionWindowSeconds: 300,
+    severityOverrides: {},
+    thresholdOverrides: {},
+  },
 });
 
 export function createStore(seed = {}) {
