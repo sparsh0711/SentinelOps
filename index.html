@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A local-first security log analyzer and SOC dashboard."
+    />
+    <title>SentinelOps | Security Log Analyzer</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24">
+              <path d="M12 3 4.5 6.2v5.1c0 4.7 3.2 8.5 7.5 9.7 4.3-1.2 7.5-5 7.5-9.7V6.2L12 3Z" />
+              <path d="m8.7 12 2 2 4.7-5" />
+            </svg>
+          </div>
+          <div>
+            <strong>SentinelOps</strong>
+            <span>Security workspace</span>
+          </div>
+        </div>
+
+        <nav class="nav-list" aria-label="Primary navigation">
+          <button class="nav-item active" data-view="overview">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 13h6V4H4v9Zm0 7h6v-4H4v4Zm10 0h6v-9h-6v9Zm0-16v4h6V4h-6Z" /></svg>
+            Overview
+          </button>
+          <button class="nav-item" data-view="alerts">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a7 7 0 0 0-7 7v4l-2 3h18l-2-3v-4a7 7 0 0 0-7-7Zm-2 17h4" /></svg>
+            Alert queue
+            <span class="nav-count" id="nav-alert-count">0</span>
+          </button>
+          <button class="nav-item" data-view="events">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4" /></svg>
+            Event explorer
+          </button>
+          <button class="nav-item" data-view="mitre">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z" /></svg>
+            MITRE matrix
+          </button>
+          <button class="nav-item" data-view="history">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8v5l3 2M4.9 5.6A9 9 0 1 1 3 12M3 5v5h5" /></svg>
+            Analysis history
+          </button>
+          <button class="nav-item" data-view="rules">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10M14 4v6M6 14v6" /></svg>
+            Detection rules
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="system-status">
+            <span class="status-dot"></span>
+            <div><strong>Analyzer online</strong><span>Local processing</span></div>
+          </div>
+          <p>Logs are analyzed in your browser and are never uploaded.</p>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">SOC / <span id="view-breadcrumb">Overview</span></p>
+            <h1 id="page-title">Security overview</h1>
+          </div>
+          <div class="topbar-actions">
+            <div class="time-range" aria-label="Current analysis range">
+              <span class="live-dot" id="backend-dot"></span>
+              <span id="analysis-range">No logs loaded</span>
+            </div>
+            <select id="export-format" aria-label="Report format">
+              <option value="json">JSON report</option>
+              <option value="csv">CSV alerts</option>
+              <option value="html">Printable report</option>
+            </select>
+            <button class="secondary-button" id="export-report" disabled>Export</button>
+            <button class="icon-button" id="theme-toggle" aria-label="Toggle theme" title="Toggle theme">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z" /></svg>
+            </button>
+            <button class="primary-button" id="open-analyzer">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+              Analyze logs
+            </button>
+          </div>
+        </header>
+
+        <div id="overview-view" class="view active">
+          <section class="hero-row">
+            <div>
+              <h2>Threat posture</h2>
+              <p id="posture-summary">Reviewing the latest activity across your environment.</p>
+            </div>
+            <div class="last-updated">Last analyzed <strong id="last-analyzed">just now</strong></div>
+          </section>
+
+          <section class="metric-grid">
+            <article class="metric-card">
+              <div class="metric-heading">
+                <span>Total events</span>
+                <span class="metric-icon blue"><svg viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5" /></svg></span>
+              </div>
+              <strong id="total-events">0</strong>
+              <small id="event-window">No events loaded</small>
+            </article>
+            <article class="metric-card">
+              <div class="metric-heading">
+                <span>Security alerts</span>
+                <span class="metric-icon red"><svg viewBox="0 0 24 24"><path d="M12 4 3 20h18L12 4Zm0 6v4M12 17h.01" /></svg></span>
+              </div>
+              <strong id="total-alerts">0</strong>
+              <small><b id="high-alert-count">0 high</b> priority findings</small>
+            </article>
+            <article class="metric-card">
+              <div class="metric-heading">
+                <span>Suspicious IPs</span>
+                <span class="metric-icon amber"><svg viewBox="0 0 24 24"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18ZM3 12h18M12 3c2.2 2.4 3.2 5.4 3 9-.2 3.5-1.2 6.5-3 9-1.8-2.5-2.8-5.5-3-9-.2-3.6.8-6.6 3-9Z" /></svg></span>
+              </div>
+              <strong id="suspicious-ips">0</strong>
+              <small id="ip-summary">No suspicious sources</small>
+            </article>
+            <article class="metric-card risk-card">
+              <div class="metric-heading">
+                <span>Overall risk</span>
+                <span class="risk-badge high" id="overall-risk-badge">HIGH</span>
+              </div>
+              <div class="risk-score-row">
+                <strong id="risk-score">0</strong><span>/100</span>
+              </div>
+              <div class="risk-track"><span id="risk-track-fill"></span></div>
+            </article>
+          </section>
+
+          <section class="dashboard-grid">
+            <article class="panel activity-panel">
+              <div class="panel-header">
+                <div><h3>Security activity</h3><p>Event and alert volume over time</p></div>
+                <div class="legend"><span><i class="legend-events"></i>Events</span><span><i class="legend-alerts"></i>Alerts</span></div>
+              </div>
+              <div class="chart-wrap">
+                <svg id="activity-chart" viewBox="0 0 760 270" role="img" aria-label="Security activity chart"></svg>
+              </div>
+            </article>
+
+            <article class="panel distribution-panel">
+              <div class="panel-header">
+                <div><h3>Alert severity</h3><p>Distribution by risk level</p></div>
+              </div>
+              <div class="donut-layout">
+                <div class="donut" id="severity-donut">
+                  <div><strong id="donut-total">0</strong><span>alerts</span></div>
+                </div>
+                <div class="severity-list">
+                  <div><span><i class="severity-dot high"></i>High</span><strong id="severity-high">0</strong></div>
+                  <div><span><i class="severity-dot medium"></i>Medium</span><strong id="severity-medium">0</strong></div>
+                  <div><span><i class="severity-dot low"></i>Low</span><strong id="severity-low">0</strong></div>
+                </div>
+              </div>
+            </article>
+          </section>
+
+          <section class="lower-grid">
+            <article class="panel">
+              <div class="panel-header">
+                <div><h3>Priority alerts</h3><p>Findings requiring analyst attention</p></div>
+                <button class="text-button" data-switch-view="alerts">View all <span>→</span></button>
+              </div>
+              <div id="priority-alerts" class="priority-list"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-header">
+                <div><h3>Top source IPs</h3><p>Sources ranked by risk activity</p></div>
+              </div>
+              <div id="top-ips" class="ip-list"></div>
+            </article>
+            <article class="panel">
+              <div class="panel-header">
+                <div><h3>MITRE ATT&CK coverage</h3><p>Techniques observed in this dataset</p></div>
+                <button class="text-button" data-switch-view="mitre">Explore <span>→</span></button>
+              </div>
+              <div id="mitre-summary" class="mitre-summary"></div>
+            </article>
+          </section>
+        </div>
+
+        <div id="alerts-view" class="view">
+          <section class="section-heading">
+            <div><h2>Alert queue</h2><p>Investigate and triage detected security findings.</p></div>
+          </section>
+          <section class="panel table-panel">
+            <div class="toolbar">
+              <label class="search-box">
+                <svg viewBox="0 0 24 24"><path d="m20 20-4-4M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" /></svg>
+                <input id="alert-search" type="search" placeholder="Search alerts, users, IPs..." />
+              </label>
+              <select id="severity-filter" aria-label="Filter by severity">
+                <option value="all">All severities</option>
+                <option value="High">High</option>
+                <option value="Medium">Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Severity</th><th>Finding</th><th>Source</th><th>MITRE ATT&CK</th><th>Time</th><th></th></tr></thead>
+                <tbody id="alerts-table"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div id="events-view" class="view">
+          <section class="section-heading">
+            <div><h2>Event explorer</h2><p>Search normalized log events and inspect raw evidence.</p></div>
+          </section>
+          <section class="panel table-panel">
+            <div class="toolbar">
+              <label class="search-box">
+                <svg viewBox="0 0 24 24"><path d="m20 20-4-4M18 11a7 7 0 1 1-14 0 7 7 0 0 1 14 0Z" /></svg>
+                <input id="event-search" type="search" placeholder="Search events..." />
+              </label>
+              <span class="result-count" id="event-result-count">0 events</span>
+            </div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Timestamp</th><th>Type</th><th>User</th><th>Source IP</th><th>Host</th><th>Status</th></tr></thead>
+                <tbody id="events-table"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div id="mitre-view" class="view">
+          <section class="section-heading">
+            <div><h2>MITRE ATT&CK mapping</h2><p>Observed tactics and techniques mapped from detected behavior.</p></div>
+          </section>
+          <section id="mitre-grid" class="mitre-grid"></section>
+        </div>
+
+        <div id="history-view" class="view">
+          <section class="section-heading">
+            <div><h2>Analysis history</h2><p>Reopen locally stored investigations and reports.</p></div>
+            <button class="secondary-button" id="refresh-history">Refresh</button>
+          </section>
+          <section class="panel table-panel">
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Analyzed</th><th>Source</th><th>Events</th><th>Alerts</th><th>Risk</th><th></th></tr></thead>
+                <tbody id="history-table"></tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+        <div id="rules-view" class="view">
+          <section class="section-heading">
+            <div><h2>Detection rules</h2><p>Add local keyword or regular-expression detections without changing code.</p></div>
+          </section>
+          <section class="rules-layout">
+            <article class="panel">
+              <div class="panel-header"><div><h3>Create custom rule</h3><p>Rules run against every normalized event.</p></div></div>
+              <form id="rule-form" class="rule-form">
+                <label>Rule name<input id="rule-name" required maxlength="80" placeholder="Suspicious remote tool" /></label>
+                <label>Event field
+                  <select id="rule-field">
+                    <option value="all">All searchable fields</option>
+                    <option value="command">Command</option>
+                    <option value="message">Message</option>
+                    <option value="process">Process</option>
+                    <option value="user">User</option>
+                    <option value="sourceIp">Source IP</option>
+                    <option value="eventId">Event ID</option>
+                  </select>
+                </label>
+                <label>Match pattern<input id="rule-pattern" required placeholder="psexec|anydesk|screenconnect" /></label>
+                <label class="check-row"><input id="rule-regex" type="checkbox" /> Treat pattern as regular expression</label>
+                <div class="rule-row">
+                  <label>Severity
+                    <select id="rule-severity"><option>High</option><option selected>Medium</option><option>Low</option></select>
+                  </label>
+                  <label>MITRE ID<input id="rule-mitre-id" placeholder="T1219" /></label>
+                </div>
+                <label>MITRE technique<input id="rule-mitre-name" placeholder="Remote Access Software" /></label>
+                <button class="primary-button" type="submit">Add detection rule</button>
+                <p class="error-message" id="rule-error"></p>
+              </form>
+            </article>
+            <article class="panel">
+              <div class="panel-header"><div><h3>Active custom rules</h3><p>Stored only in this browser.</p></div></div>
+              <div id="custom-rules-list" class="custom-rules-list"></div>
+              <div class="notification-setting">
+                <div><strong>High-severity notifications</strong><span>Show a desktop notification after analysis.</span></div>
+                <button class="secondary-button" id="enable-notifications">Enable</button>
+              </div>
+            </article>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal-backdrop" id="analyzer-modal" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="analyzer-title">
+        <div class="modal-header">
+          <div><span class="modal-kicker">LOCAL ANALYZER</span><h2 id="analyzer-title">Analyze security logs</h2><p>Paste logs or choose a local file. Nothing is uploaded.</p></div>
+          <button class="icon-button close-modal" aria-label="Close analyzer">×</button>
+        </div>
+        <div class="format-hint">
+          <strong>Supported:</strong> EVTX, JSON array, JSONL, CSV, and common plain-text auth logs.
+          Fields such as <code>timestamp</code>, <code>event_id</code>, <code>user</code>, <code>source_ip</code>, <code>command</code>, and <code>status</code> are recognized.
+        </div>
+        <div class="live-collector">
+          <div>
+            <strong>Collect from this Windows computer</strong>
+            <span id="backend-status">Checking local service...</span>
+          </div>
+          <select id="windows-channel" aria-label="Windows event channel">
+            <option>Security</option>
+            <option>System</option>
+            <option>Application</option>
+            <option>Microsoft-Windows-PowerShell/Operational</option>
+            <option>Microsoft-Windows-PowerShellCore/Operational</option>
+            <option>Microsoft-Windows-Windows Defender/Operational</option>
+            <option>Microsoft-Windows-Sysmon/Operational</option>
+          </select>
+          <select id="windows-max-events" aria-label="Maximum event count">
+            <option value="100">100 events</option>
+            <option value="500" selected>500 events</option>
+            <option value="1000">1,000 events</option>
+            <option value="5000">5,000 events</option>
+          </select>
+          <button class="secondary-button" id="collect-windows">Collect</button>
+          <label class="auto-collect"><input id="incremental-collection" type="checkbox" checked /> Only collect new records</label>
+          <label class="auto-collect"><input id="auto-collect" type="checkbox" /> Auto-refresh every 60 seconds</label>
+          <button class="text-button collector-reset" id="reset-checkpoint">Reset channel checkpoint</button>
+          <span class="checkpoint-status" id="checkpoint-status">No collection checkpoint yet.</span>
+        </div>
+        <label class="drop-zone" id="drop-zone">
+          <input type="file" id="file-input" accept=".evtx,.json,.jsonl,.csv,.log,.txt" />
+          <svg viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M5 14v5h14v-5" /></svg>
+          <strong>Drop a log file here or click to browse</strong>
+          <span id="file-label">EVTX, JSON, JSONL, CSV, LOG, or TXT</span>
+        </label>
+        <div class="or-divider"><span>or paste logs</span></div>
+        <textarea id="log-input" spellcheck="false" placeholder="Paste real security logs here..."></textarea>
+        <div class="modal-actions">
+          <button class="primary-button" id="run-analysis">
+            <svg viewBox="0 0 24 24"><path d="m9 18 6-6-6-6" /></svg>
+            Run analysis
+          </button>
+        </div>
+        <p class="error-message" id="analysis-error"></p>
+      </div>
+    </div>
+
+    <div class="modal-backdrop" id="detail-modal" aria-hidden="true">
+      <div class="modal detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+        <div class="modal-header">
+          <div><span class="modal-kicker">ALERT INVESTIGATION</span><h2 id="detail-title">Alert details</h2></div>
+          <button class="icon-button close-detail" aria-label="Close details">×</button>
+        </div>
+        <div id="detail-content"></div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status">
+      <span class="toast-check">✓</span>
+      <div><strong>Analysis complete</strong><span id="toast-message"></span></div>
+    </div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
