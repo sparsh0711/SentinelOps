@@ -1,4 +1,5 @@
 import { normalizeEvent } from "./parsers.js";
+import { runRuleEngine } from "./rule_engine.js";
 
 const MITRE = {
   failed_login: { id: "T1110", name: "Brute Force", tactic: "Credential Access" },
@@ -38,8 +39,11 @@ function alert(type, severity, title, description, events) {
   };
 }
 
-export function analyzeEvents(rawEvents) {
+export function analyzeEvents(rawEvents, rules = [], settings = {}) {
   const events = rawEvents.map(normalizeEvent).sort((left, right) => new Date(left.timestamp) - new Date(right.timestamp));
+  if (rules.length) {
+    return { events, ...runRuleEngine(events, rules, settings) };
+  }
   const alerts = [];
   const failures = events.filter((event) => event.status === "failed" || event.eventId === "4625");
   const byIp = failures.reduce((map, event) => {
