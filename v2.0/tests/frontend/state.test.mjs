@@ -13,3 +13,16 @@ test("store publishes immutable top-level state updates", () => {
   assert.equal(observed.riskLevel, "High");
   assert.equal(store.get().sourceName, "No logs loaded");
 });
+
+test("detection settings are part of default state", () => {
+  const store = createStore();
+  assert.deepEqual(store.get().detectionSettings.allowlists.users, []);
+  assert.equal(store.get().detectionSettings.suppressionWindowSeconds, 300);
+});
+
+test("incident workflow state starts empty", () => {
+  const store = createStore();
+  assert.deepEqual(store.get().incidents, []);
+  assert.equal(store.get().selectedIncident, null);
+  assert.equal(store.get().incidentFilter, "");
+});
