@@ -38,6 +38,20 @@ async function refreshRules() {
   store.set({ rules: rulePayload.rules, detectionSettings: settings });
 }
 
+async function refreshIncidents(status = store.get().incidentFilter) {
+  if (!store.get().backendOnline) return;
+  const payload = await api.listIncidents(status);
+  const current = store.get().selectedIncident;
+  store.set({
+    incidents: payload.incidents,
+    incidentFilter: status,
+    selectedIncident: current && payload.incidents.some((item) => item.id === current.id)
+      ? current
+      : null,
+    incidentError: "",
+  });
+}
+
 async function saveRule(rule) {
   await api.saveRule(rule);
   await refreshRules();
@@ -72,6 +86,42 @@ async function importRules(rules) {
   await refreshRules();
 }
 
+async function createIncidentFromAlert(alertId) {
+  if (!store.get().backendOnline) throw new Error("Start the local v2 service before creating incidents.");
+  const state = store.get();
+  const alert = state.alerts.find((item) => item.id === alertId);
+  if (!alert) throw new Error("That alert is no longer available.");
+  const incident = await api.createIncident({
+    sourceName: state.sourceName,
+    riskScore: state.riskScore,
+    alert: {
+      ...alert,
+      riskScore: alert.riskScore ?? state.riskScore,
+      events: (alert.events || []).slice(0, 20),
+    },
+  });
+  const listing = await api.listIncidents(state.incidentFilter);
+  store.set({ incidents: listing.incidents, selectedIncident: incident, incidentError: "" });
+}
+
+async function selectIncident(id) {
+  if (!id) return;
+  const incident = await api.getIncident(id);
+  store.set({ selectedIncident: incident, incidentError: "" });
+}
+
+async function updateIncident(id, patch) {
+  const incident = await api.updateIncident(id, patch);
+  const listing = await api.listIncidents(store.get().incidentFilter);
+  store.set({ selectedIncident: incident, incidents: listing.incidents, incidentError: "" });
+}
+
+async function addIncidentNote(id, note) {
+  const incident = await api.addIncidentNote(id, note);
+  const listing = await api.listIncidents(store.get().incidentFilter);
+  store.set({ selectedIncident: incident, incidents: listing.incidents, incidentError: "" });
+}
+
 function testSelectedRule(ruleId, text) {
   const rule = store.get().rules.find((item) => item.id === ruleId);
   if (!rule) throw new Error("Choose a detection rule.");
@@ -87,6 +137,11 @@ bindUi(store, {
   saveSettings,
   saveRuleOverride,
   importRules,
+  refreshIncidents,
+  createIncidentFromAlert,
+  selectIncident,
+  updateIncident,
+  addIncidentNote,
   testSelectedRule,
 });
 
@@ -94,7 +149,7 @@ try {
   const status = await api.status();
   store.set({ backendOnline: true });
   renderBackendStatus(true, status.version);
-  await refreshRules();
+  await Promise.all([refreshRules(), refreshIncidents()]);
 } catch {
   renderBackendStatus(false);
 }
