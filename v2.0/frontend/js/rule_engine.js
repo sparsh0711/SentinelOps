@@ -2,7 +2,7 @@ const severityWeight = { High: 18, Medium: 9, Low: 3 };
 
 const getValue = (event, field) => {
   if (field === "all") {
-    return `${event.eventId} ${event.user} ${event.sourceIp} ${event.host} ${event.status} ${event.process} ${event.command} ${event.message} ${event.group} ${event.privileges}`;
+    return `${event.eventId} ${event.user} ${event.sourceIp} ${event.host} ${event.status} ${event.process} ${event.parentProcess} ${event.command} ${event.message} ${event.group} ${event.privileges} ${event.logonType} ${event.destinationIp} ${event.destinationPort} ${event.targetFilename} ${event.registryKey} ${event.serviceName} ${event.hash}`;
   }
   return event[field];
 };
