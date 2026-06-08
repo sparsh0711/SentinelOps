@@ -22,7 +22,7 @@ class DatabaseTests(unittest.TestCase):
             ).fetchall()
         self.assertEqual(
             [row["version"] for row in versions],
-            ["001_initial", "002_detection_rules"],
+            ["001_initial", "002_detection_rules", "003_incidents"],
         )
 
     def test_analysis_round_trip(self):
@@ -43,6 +43,39 @@ class DatabaseTests(unittest.TestCase):
         self.assertEqual(self.database.get_checkpoint("Security"), 42)
         self.database.reset_checkpoint("Security")
         self.assertEqual(self.database.get_checkpoint("Security"), 0)
+
+    def test_incident_round_trip(self):
+        incident = self.database.create_incident(
+            {
+                "title": "Suspicious PowerShell",
+                "severity": "High",
+                "status": "New",
+                "owner": "",
+                "sourceName": "Security.evtx",
+                "alertId": "alert-1",
+                "ruleId": "suspicious-powershell",
+                "mitreId": "T1059.001",
+                "riskScore": 90,
+                "description": "Encoded command detected.",
+                "evidence": [],
+                "alert": {},
+            }
+        )
+        self.assertEqual(incident["title"], "Suspicious PowerShell")
+        self.assertEqual(self.database.list_incidents()[0]["id"], incident["id"])
+
+        updated = self.database.update_incident(
+            incident["id"],
+            {"status": "Investigating", "owner": "Sparsh", "actor": "Sparsh"},
+        )
+        self.assertEqual(updated["status"], "Investigating")
+        self.assertEqual(updated["owner"], "Sparsh")
+
+        noted = self.database.add_incident_note(
+            incident["id"], {"author": "Sparsh", "text": "Checked source host."}
+        )
+        self.assertEqual(noted["notes"][0]["text"], "Checked source host.")
+        self.assertGreaterEqual(len(noted["timeline"]), 3)
 
 
 if __name__ == "__main__":
