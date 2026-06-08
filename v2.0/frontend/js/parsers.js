@@ -20,6 +20,7 @@ export function normalizeSourceIp(value) {
 export function normalizeEvent(raw, index = 0) {
   const message = String(firstValue(raw, ["message", "description", "Message"], ""));
   const eventId = String(firstValue(raw, ["event_id", "eventid", "EventID", "id"], ""));
+  const destinationIp = normalizeSourceIp(firstValue(raw, ["destination_ip", "dest_ip", "dst_ip", "DestinationIp", "DestinationIpAddress"], ""));
   let status = String(firstValue(raw, ["status", "result", "outcome"], "")).toLowerCase();
   if (!status) {
     status = eventId === "4625" || /failed|failure|invalid|denied/i.test(message)
@@ -36,9 +37,17 @@ export function normalizeEvent(raw, index = 0) {
     status,
     message,
     process: String(firstValue(raw, ["process", "process_name", "Image", "NewProcessName"], "")),
+    parentProcess: String(firstValue(raw, ["parent_process", "parentProcess", "ParentImage", "ParentProcessName"], "")),
     command: String(firstValue(raw, ["command", "commandline", "CommandLine", "ScriptBlockText"], "")),
     group: String(firstValue(raw, ["group", "group_name"], "")),
     privileges: String(firstValue(raw, ["privileges", "PrivilegeList"], "")),
+    logonType: String(firstValue(raw, ["logon_type", "logonType", "LogonType"], "")),
+    destinationIp,
+    destinationPort: String(firstValue(raw, ["destination_port", "dest_port", "DestinationPort"], "")),
+    targetFilename: String(firstValue(raw, ["target_filename", "targetFilename", "TargetFilename"], "")),
+    registryKey: String(firstValue(raw, ["registry_key", "registryKey", "TargetObject", "ObjectName"], "")),
+    serviceName: String(firstValue(raw, ["service_name", "serviceName", "ServiceName"], "")),
+    hash: String(firstValue(raw, ["hash", "hashes", "Hashes"], "")),
     raw,
   };
 }
