@@ -31,5 +31,5 @@ if (-not $python) {
 }
 
 Set-Location -LiteralPath $PSScriptRoot
-Write-Host "Starting SentinelOps v2.0 at http://127.0.0.1:8081"
+Write-Host "Starting SentinelOps v2.0 Phase 4 at http://127.0.0.1:8081"
 & $python -m backend.app
