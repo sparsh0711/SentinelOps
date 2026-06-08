@@ -77,6 +77,43 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(settings["allowlists"]["users"], ["svc_backup"])
         self.assertEqual(settings["suppressionWindowSeconds"], 600)
 
+    def test_incident_api_round_trip(self):
+        created, status = self.api.post_json(
+            "/api/v2/incidents",
+            {
+                "sourceName": "Security.evtx",
+                "alert": {
+                    "id": "alert-1",
+                    "ruleId": "suspicious-powershell",
+                    "title": "Suspicious PowerShell",
+                    "description": "Encoded command detected.",
+                    "severity": "High",
+                    "riskScore": 92,
+                    "mitre": {"id": "T1059.001", "name": "PowerShell"},
+                },
+            },
+        )
+        self.assertEqual(status, 201)
+        self.assertEqual(created["status"], "New")
+
+        listing, status = self.api.get("/api/v2/incidents", "")
+        self.assertEqual(status, 200)
+        self.assertEqual(listing["incidents"][0]["id"], created["id"])
+
+        updated, status = self.api.post_json(
+            f"/api/v2/incidents/{created['id']}/update",
+            {"status": "Contained", "owner": "Sparsh"},
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(updated["status"], "Contained")
+
+        noted, status = self.api.post_json(
+            f"/api/v2/incidents/{created['id']}/notes",
+            {"author": "Sparsh", "text": "Isolated the affected host."},
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(noted["notes"][0]["author"], "Sparsh")
+
 
 if __name__ == "__main__":
     unittest.main()
