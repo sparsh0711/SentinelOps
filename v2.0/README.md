@@ -1,4 +1,4 @@
-# SentinelOps v2.0 Phase 3
+# SentinelOps v2.0 Phase 4
 
 SentinelOps v2.0 is developed separately from the stable root application.
 
@@ -36,6 +36,17 @@ SentinelOps v2.0 is developed separately from the stable root application.
 - [x] Security log clear, service installation, account manipulation, and RDP logon detections
 - [x] Additional normalized fields for parent process, logon type, destination, registry, file, service, and hash data
 
+## Phase 4 Incident Workflow
+
+- [x] Create incidents from real detection alerts
+- [x] Store incidents locally in SQLite
+- [x] Track status: New, Investigating, Contained, Resolved, and False Positive
+- [x] Track severity, owner, source, alert ID, rule ID, MITRE ID, and risk score
+- [x] Add analyst investigation notes
+- [x] Maintain a case timeline for creation, updates, and notes
+- [x] Filter the incident queue by status
+- [x] Open incident details from the SOC dashboard
+
 ## Run
 
 ```powershell
@@ -49,8 +60,6 @@ Open `http://127.0.0.1:8081`.
 ```powershell
 .\test.ps1
 ```
-
-Phase 4 will add incident management workflow.
 
 ## Structure
 
