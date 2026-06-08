@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="SentinelOps v2 Phase 3 security log analyzer" />
-    <title>SentinelOps v2 Phase 3</title>
+    <meta name="description" content="SentinelOps v2 Phase 4 security log analyzer and SOC dashboard" />
+    <title>SentinelOps v2 Phase 4</title>
     <link rel="stylesheet" href="styles/main.css" />
   </head>
   <body>
     <div class="shell">
       <aside>
-        <div class="brand"><span>SO</span><div><strong>SentinelOps</strong><small>v2.0 Phase 3</small></div></div>
+        <div class="brand"><span>SO</span><div><strong>SentinelOps</strong><small>v2.0 Phase 4</small></div></div>
         <nav>
           <button class="active" data-view="overview">Overview</button>
-          <button disabled>Incidents <span>Phase 4</span></button>
+          <button data-view="incidents">Incidents</button>
           <button data-view="rules">Detection rules</button>
         </nav>
         <div class="service"><i id="service-dot"></i><div><strong id="service-label">Connecting</strong><small>API v2</small></div></div>
@@ -30,7 +30,7 @@
 
         <div id="overview-view" class="view active">
         <section class="intro">
-          <div><span class="version">PHASE 3 COVERAGE</span><h2 id="posture">Ready for real telemetry</h2><p>Analyze Windows and Sysmon logs with expanded detection coverage.</p></div>
+          <div><span class="version">PHASE 4 INCIDENT WORKFLOW</span><h2 id="posture">Ready for real telemetry</h2><p>Analyze Windows and Sysmon logs, then turn alerts into trackable incidents.</p></div>
           <div class="risk"><span>Overall risk</span><strong id="risk-score">0</strong><em id="risk-level">LOW</em></div>
         </section>
 
@@ -63,9 +63,29 @@
         </section>
         </div>
 
+        <div id="incidents-view" class="view">
+          <section class="intro">
+            <div><span class="version">PHASE 4</span><h2>Incident queue</h2><p>Create cases from real alert data, assign an owner, track status, and keep investigation notes.</p></div>
+            <div class="rule-total"><strong id="incident-count">0</strong><span>open cases</span></div>
+          </section>
+
+          <section class="incidents-layout">
+            <article class="panel">
+              <div class="panel-head"><div><h3>Case queue</h3><p>Saved locally in the v2 database.</p></div><select id="incident-filter"><option value="">All statuses</option><option>New</option><option>Investigating</option><option>Contained</option><option>Resolved</option><option>False Positive</option></select></div>
+              <div id="incident-list" class="incident-list empty">No incidents created yet.</div>
+            </article>
+
+            <article class="panel incident-detail-panel">
+              <div class="panel-head"><div><h3>Case details</h3><p id="incident-detail-summary">Select an incident to investigate.</p></div></div>
+              <div id="incident-detail" class="empty">Create an incident from an alert or select one from the queue.</div>
+              <p class="error" id="incident-error"></p>
+            </article>
+          </section>
+        </div>
+
         <div id="rules-view" class="view">
           <section class="intro">
-            <div><span class="version">PHASE 3</span><h2>Detection engineering</h2><p>Manage expanded Windows/Sysmon rules, thresholds, allowlists, and suppression.</p></div>
+            <div><span class="version">PHASE 4</span><h2>Detection engineering</h2><p>Manage expanded Windows/Sysmon rules, thresholds, allowlists, and suppression.</p></div>
             <div class="rule-total"><strong id="rule-count">0</strong><span>rules loaded</span></div>
           </section>
 
