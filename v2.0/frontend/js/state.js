@@ -6,6 +6,10 @@ const initialState = () => ({
   riskLevel: "Low",
   backendOnline: false,
   rules: [],
+  incidents: [],
+  selectedIncident: null,
+  incidentFilter: "",
+  incidentError: "",
   detectionSettings: {
     allowlists: { users: [], hosts: [], sourceIps: [], processes: [] },
     suppressionWindowSeconds: 300,
