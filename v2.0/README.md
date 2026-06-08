@@ -27,7 +27,7 @@ SentinelOps v2.0 is developed separately from the stable root application.
 
 ## Phase 3 Windows And Sysmon Coverage
 
-- [x] Expanded built-in rule pack from 4 rules to 14 rules
+- [x] Expanded built-in rule pack from 4 rules to 15 rules
 - [x] Sysmon process creation detections for LOLBins and suspicious parent-child chains
 - [x] Sysmon network connection detections for scripting tools making outbound traffic
 - [x] Sysmon registry autorun persistence detections
