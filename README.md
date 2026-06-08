@@ -6,8 +6,8 @@ and keeps analysis history on the local machine.
 
 ![SentinelOps dashboard analyzing a public EVTX sample](dashboard-verification.png)
 
-> **v2.0 development:** The completed Phase 1 foundation and Phase 2 detection
-> engine are available in
+> **v2.0 development:** The completed Phase 1 foundation, Phase 2 detection
+> engine, and Phase 3 Windows/Sysmon coverage are available in
 > [`v2.0/`](v2.0/README.md). The application in the repository root remains the
 > stable v1 release.
 
@@ -16,6 +16,7 @@ and keeps analysis history on the local machine.
 - Analyze Windows `.evtx`, JSON, JSONL, CSV, LOG, and TXT files
 - Collect live Windows Security, System, Application, PowerShell, Defender, and Sysmon events
 - Detect failed logins, brute force, password spraying, suspicious PowerShell, and privilege activity
+- Detect Sysmon process, network, registry, file-drop, and parent-child process patterns
 - Correlate multi-stage behavior across authentication, execution, and privilege events
 - Map alerts to MITRE ATT&CK techniques
 - Calculate Low, Medium, and High risk scores
@@ -79,6 +80,10 @@ Common normalized fields include `timestamp`, `event_id`, `user`, `source_ip`, `
 | Suspicious PowerShell | Script block and command indicators, including Event IDs 4103/4104 | T1059.001 |
 | Privilege escalation indicators | Sensitive privilege, service, group, and audit events | T1068 / related context |
 | Suspicious IP activity | External addresses associated with repeated authentication activity | T1078 |
+| Sysmon process execution | LOLBins and suspicious parent-child process chains | T1218 / T1204.002 |
+| Sysmon network activity | Scripting/admin tools making outbound connections | T1105 |
+| Persistence indicators | Autorun registry keys, service installation, suspicious file drops | T1547.001 / T1543.003 |
+| Defense evasion | Defender tamper and security log clearing | T1562.001 / T1070.001 |
 | Attack-chain correlation | Login failure, success, execution, and privilege stages | Multiple techniques |
 
 ## Testing With Real Logs
@@ -106,8 +111,8 @@ contain usernames, hostnames, addresses, commands, and other sensitive informati
 
 SentinelOps is a portfolio and learning project, not a replacement for a production
 SIEM or EDR. Its detections are rule-based and should be validated by an analyst.
-Future work can add Sigma rules, threat-intelligence enrichment, allowlists, automated
-tests, and ingestion from remote systems.
+Future work can add Sigma rules, threat-intelligence enrichment, incident workflow,
+automated tests, and ingestion from remote systems.
 
 ## License
 
