@@ -1,4 +1,4 @@
-# SentinelOps v2 Phase 3 Architecture
+# SentinelOps v2 Phase 4 Architecture
 
 ## Backend
 
@@ -27,6 +27,30 @@ ID, method, path, status, and duration without writing uploaded event content.
 
 Detection and parsing modules are independent of the DOM, which allows them to run in
 Node's built-in test runner.
+
+Phase 4 adds an incident workflow on top of the detection engine. Alerts remain
+generated from real uploaded, pasted, imported, or live-collected events. An analyst can
+then create a local incident record from an alert and manage the case without sending
+data outside the machine.
+
+## Incident Data Model
+
+Incidents are stored in SQLite by migration `003_incidents.sql`.
+
+| Field | Purpose |
+| --- | --- |
+| `title` | Human-readable incident name from the source alert |
+| `severity` | Low, Medium, or High |
+| `status` | New, Investigating, Contained, Resolved, or False Positive |
+| `owner` | Analyst or team responsible for the case |
+| `source_name` | File, paste, or live channel that produced the alert |
+| `alert_id` | Browser detection alert identifier |
+| `rule_id` | Detection rule that produced the alert |
+| `mitre_id` | MITRE ATT&CK technique ID |
+| `risk_score` | Numeric score at creation time |
+| `payload` | Saved alert evidence and context |
+| `notes` | Analyst notes as JSON |
+| `timeline` | Creation, update, and note history as JSON |
 
 ## Normalized Event Fields
 
@@ -60,6 +84,11 @@ Windows/EVTX collector.
 | GET | `/api/v2/analyses` | List saved analyses |
 | GET | `/api/v2/analyses/{id}` | Open one saved analysis |
 | POST | `/api/v2/analyses` | Save a completed analysis |
+| GET | `/api/v2/incidents` | List saved incidents |
+| GET | `/api/v2/incidents/{id}` | Open one incident with notes and timeline |
+| POST | `/api/v2/incidents` | Create an incident from an alert |
+| POST | `/api/v2/incidents/{id}/update` | Update status, severity, owner, or title |
+| POST | `/api/v2/incidents/{id}/notes` | Add an investigation note |
 | GET | `/api/v2/events/windows` | Collect a Windows event channel |
 | POST | `/api/v2/imports/evtx` | Parse an uploaded EVTX file |
 | POST | `/api/v2/checkpoints/reset` | Reset a channel checkpoint |
