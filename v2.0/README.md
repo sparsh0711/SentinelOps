@@ -1,4 +1,4 @@
-# SentinelOps v2.0
+# SentinelOps v2.0 Phase 3
 
 SentinelOps v2.0 is developed separately from the stable root application.
 
@@ -25,6 +25,17 @@ SentinelOps v2.0 is developed separately from the stable root application.
 - [x] Severity and threshold overrides
 - [x] In-browser rule test bench
 
+## Phase 3 Windows And Sysmon Coverage
+
+- [x] Expanded built-in rule pack from 4 rules to 14 rules
+- [x] Sysmon process creation detections for LOLBins and suspicious parent-child chains
+- [x] Sysmon network connection detections for scripting tools making outbound traffic
+- [x] Sysmon registry autorun persistence detections
+- [x] Sysmon suspicious file-drop detections in user-writable folders
+- [x] Defender tamper and security-control modification detections
+- [x] Security log clear, service installation, account manipulation, and RDP logon detections
+- [x] Additional normalized fields for parent process, logon type, destination, registry, file, service, and hash data
+
 ## Run
 
 ```powershell
@@ -39,8 +50,7 @@ Open `http://127.0.0.1:8081`.
 .\test.ps1
 ```
 
-Phase 3 will expand Windows and Sysmon detection coverage. Incident management remains
-planned for Phase 4.
+Phase 4 will add incident management workflow.
 
 ## Structure
 
@@ -68,5 +78,4 @@ v2.0/
 ```
 
 See [docs/architecture.md](docs/architecture.md) for module responsibilities and
-the API contract. See [docs/detection-rules.md](docs/detection-rules.md) for the rule
-schema and tuning workflow.
+[docs/detection-rules.md](docs/detection-rules.md) for the rule schema and coverage.
