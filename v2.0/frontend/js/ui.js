@@ -6,6 +6,7 @@ const formatTime = (value) => {
   return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString([], { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
 };
 const lines = (value) => value.split(/\r?\n/).map((item) => item.trim()).filter(Boolean);
+const openStatuses = new Set(["New", "Investigating", "Contained"]);
 
 function renderEvents(events) {
   const query = $("#event-search").value.toLowerCase();
@@ -36,7 +37,7 @@ export function render(state) {
 
   $("#alerts").className = state.alerts.length ? "list" : "list empty";
   $("#alerts").innerHTML = state.alerts.length ? state.alerts.slice(0, 6).map((item) => `
-    <div class="alert ${item.severity.toLowerCase()}"><span class="badge">${item.severity}</span><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.description)}</span><span class="confidence">${item.confidence ?? 50}% confidence</span><span class="alert-details">${escapeHtml((item.explanation || []).join(" | "))}</span></div>`).join("") : "No alerts detected.";
+    <div class="alert ${item.severity.toLowerCase()}"><span class="badge">${item.severity}</span><strong>${escapeHtml(item.title)}</strong><span>${escapeHtml(item.description)}</span><span class="confidence">${item.confidence ?? 50}% confidence</span><span class="alert-details">${escapeHtml((item.explanation || []).join(" | "))}</span><button class="mini-action" data-alert-action="incident" data-alert-id="${escapeHtml(item.id)}">Create incident</button></div>`).join("") : "No alerts detected.";
 
   const techniques = [...new Map(state.alerts.map((item) => [item.mitre.id, item.mitre])).values()];
   $("#mitre").className = techniques.length ? "list" : "list empty";
@@ -44,6 +45,7 @@ export function render(state) {
     <div class="technique"><span class="badge">${escapeHtml(item.id)}</span><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.tactic)}</span></div>`).join("") : "No techniques detected.";
   renderEvents(state.events);
   renderRules(state);
+  renderIncidents(state);
 }
 
 export function bindUi(store, handlers) {
@@ -66,10 +68,60 @@ export function bindUi(store, handlers) {
     }
   });
   $("#event-search").addEventListener("input", () => render(store.get()));
+  $("#alerts").addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-alert-action='incident']");
+    if (!button) return;
+    try {
+      await handlers.createIncidentFromAlert(button.dataset.alertId);
+      document.querySelector("[data-view='incidents']").click();
+    } catch (error) {
+      $("#error").textContent = error.message;
+    }
+  });
   document.querySelectorAll("[data-view]").forEach((button) => button.addEventListener("click", () => {
     document.querySelectorAll(".view").forEach((view) => view.classList.toggle("active", view.id === `${button.dataset.view}-view`));
     document.querySelectorAll("[data-view]").forEach((item) => item.classList.toggle("active", item === button));
   }));
+  $("#incident-filter").addEventListener("change", async (event) => {
+    try {
+      await handlers.refreshIncidents(event.target.value);
+    } catch (error) {
+      store.set({ incidentError: error.message });
+    }
+  });
+  $("#incident-list").addEventListener("click", async (event) => {
+    const card = event.target.closest("[data-incident-id]");
+    if (!card) return;
+    try {
+      await handlers.selectIncident(card.dataset.incidentId);
+    } catch (error) {
+      store.set({ incidentError: error.message });
+    }
+  });
+  $("#incident-detail").addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const form = event.target;
+    const incidentId = form.dataset.incidentId;
+    try {
+      if (form.dataset.incidentForm === "update") {
+        await handlers.updateIncident(incidentId, {
+          title: form.querySelector("[name='title']").value,
+          status: form.querySelector("[name='status']").value,
+          severity: form.querySelector("[name='severity']").value,
+          owner: form.querySelector("[name='owner']").value,
+        });
+      }
+      if (form.dataset.incidentForm === "note") {
+        await handlers.addIncidentNote(incidentId, {
+          author: form.querySelector("[name='author']").value,
+          text: form.querySelector("[name='text']").value,
+        });
+        form.reset();
+      }
+    } catch (error) {
+      store.set({ incidentError: error.message });
+    }
+  });
   $("#rule-form").addEventListener("submit", async (event) => {
     event.preventDefault();
     $("#rule-error").textContent = "";
@@ -205,6 +257,65 @@ function renderRules(state) {
 
 function effectiveSeverity(state, rule) {
   return state.detectionSettings.severityOverrides?.[rule.id] || rule.level;
+}
+
+function renderIncidents(state) {
+  if (!$("#incident-list")) return;
+  const openCount = state.incidents.filter((item) => openStatuses.has(item.status)).length;
+  $("#incident-count").textContent = openCount;
+  $("#incident-filter").value = state.incidentFilter || "";
+  $("#incident-error").textContent = state.incidentError || "";
+  $("#incident-list").className = state.incidents.length ? "incident-list" : "incident-list empty";
+  $("#incident-list").innerHTML = state.incidents.length ? state.incidents.map((incident) => `
+    <div class="incident-card ${state.selectedIncident?.id === incident.id ? "selected" : ""}" data-incident-id="${incident.id}">
+      <div><strong>${escapeHtml(incident.title)}</strong><span>#${incident.id} - ${escapeHtml(incident.source_name || "No source")}</span></div>
+      <div><span class="status-pill ${escapeHtml(incident.status.toLowerCase().replaceAll(" ", "-"))}">${escapeHtml(incident.status)}</span><span class="badge">${escapeHtml(incident.severity)}</span></div>
+      <small>Owner: ${escapeHtml(incident.owner || "Unassigned")} - Updated ${escapeHtml(formatTime(incident.updated_at))}</small>
+    </div>`).join("") : "No incidents created yet.";
+
+  const incident = state.selectedIncident;
+  if (!incident) {
+    $("#incident-detail-summary").textContent = "Select an incident to investigate.";
+    $("#incident-detail").className = "empty";
+    $("#incident-detail").innerHTML = "Create an incident from an alert or select one from the queue.";
+    return;
+  }
+  $("#incident-detail").className = "incident-detail";
+  $("#incident-detail-summary").textContent = `Incident #${incident.id} - ${incident.source_name || "No source"}`;
+  $("#incident-detail").innerHTML = `
+    <form class="rule-form incident-form" data-incident-form="update" data-incident-id="${incident.id}">
+      <div class="form-grid">
+        <label class="wide">Title<input name="title" value="${escapeHtml(incident.title)}" /></label>
+        <label>Status<select name="status">${["New", "Investigating", "Contained", "Resolved", "False Positive"].map((status) => `<option ${incident.status === status ? "selected" : ""}>${status}</option>`).join("")}</select></label>
+        <label>Severity<select name="severity">${["Low", "Medium", "High"].map((severity) => `<option ${incident.severity === severity ? "selected" : ""}>${severity}</option>`).join("")}</select></label>
+        <label class="wide">Owner<input name="owner" placeholder="Analyst name" value="${escapeHtml(incident.owner || "")}" /></label>
+      </div>
+      <button type="submit">Update incident</button>
+    </form>
+    <div class="incident-evidence">
+      <h4>Alert evidence</h4>
+      <p>${escapeHtml(incident.payload?.description || "No description saved.")}</p>
+      <div class="evidence-grid">
+        <span>Rule: <strong>${escapeHtml(incident.rule_id || "N/A")}</strong></span>
+        <span>MITRE: <strong>${escapeHtml(incident.mitre_id || "N/A")}</strong></span>
+        <span>Risk score: <strong>${escapeHtml(incident.risk_score)}</strong></span>
+      </div>
+    </div>
+    <form class="rule-form incident-form" data-incident-form="note" data-incident-id="${incident.id}">
+      <div class="form-grid">
+        <label>Author<input name="author" placeholder="Sparsh" /></label>
+        <label class="wide">Investigation note<textarea name="text" placeholder="What did you check? What changed?"></textarea></label>
+      </div>
+      <button type="submit">Add note</button>
+    </form>
+    <div class="notes">
+      <h4>Notes</h4>
+      ${(incident.notes || []).length ? incident.notes.map((note) => `<div class="note"><strong>${escapeHtml(note.author)}</strong><span>${escapeHtml(formatTime(note.time))}</span><p>${escapeHtml(note.text)}</p></div>`).join("") : "<p class=\"muted\">No notes yet.</p>"}
+    </div>
+    <div class="timeline">
+      <h4>Timeline</h4>
+      ${(incident.timeline || []).map((item) => `<div><strong>${escapeHtml(item.action)}</strong><span>${escapeHtml(formatTime(item.time))} by ${escapeHtml(item.actor)}</span><p>${escapeHtml(item.details)}</p></div>`).join("")}
+    </div>`;
 }
 
 export function renderRuleTest(result) {
