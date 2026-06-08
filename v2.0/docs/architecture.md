@@ -1,4 +1,4 @@
-# SentinelOps v2 Architecture
+# SentinelOps v2 Phase 3 Architecture
 
 ## Backend
 
@@ -27,6 +27,30 @@ ID, method, path, status, and duration without writing uploaded event content.
 
 Detection and parsing modules are independent of the DOM, which allows them to run in
 Node's built-in test runner.
+
+## Normalized Event Fields
+
+Phase 3 expands the normalized event model used by the browser rule engine and the
+Windows/EVTX collector.
+
+| Field | Common source examples |
+| --- | --- |
+| `eventId` | Windows event ID or Sysmon event ID |
+| `user` | `TargetUserName`, `SubjectUserName`, `user` |
+| `sourceIp` | `IpAddress`, `SourceNetworkAddress`, `ClientAddress` |
+| `destinationIp` | `DestinationIp`, `DestinationIpAddress` |
+| `destinationPort` | `DestinationPort`, `DestPort` |
+| `process` | `Image`, `NewProcessName` |
+| `parentProcess` | `ParentImage`, `ParentProcessName` |
+| `command` | `CommandLine`, `ScriptBlockText` |
+| `logonType` | Windows `LogonType` |
+| `targetFilename` | Sysmon `TargetFilename` |
+| `registryKey` | Sysmon `TargetObject`, Windows `ObjectName` |
+| `serviceName` | Windows `ServiceName` |
+| `hash` | Sysmon `Hashes`, `Hash` |
+| `group` | Group membership events |
+| `privileges` | `PrivilegeList` |
+| `message` | Rendered event message |
 
 ## API v2
 
