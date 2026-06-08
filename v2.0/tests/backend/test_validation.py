@@ -1,4 +1,6 @@
 import unittest
+import json
+from pathlib import Path
 
 from backend.errors import ApiError
 from backend.validation import (
@@ -75,6 +77,14 @@ class ValidationTests(unittest.TestCase):
         )
         self.assertEqual(settings["allowlists"]["users"], ["svc_backup"])
         self.assertEqual(settings["severityOverrides"]["custom"], "Low")
+
+    def test_default_rules_validate(self):
+        rules_path = Path(__file__).resolve().parents[2] / "rules" / "default_rules.json"
+        rules = json.loads(rules_path.read_text(encoding="utf-8"))
+        self.assertGreaterEqual(len(rules), 14)
+        for rule in rules:
+            validated = validate_rule(rule)
+            self.assertEqual(validated["id"], rule["id"])
 
 
 if __name__ == "__main__":
