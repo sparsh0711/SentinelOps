@@ -8,7 +8,11 @@
     "enabled": true,
     "confidence": 90,
     "logsource": {"product": "windows", "category": "authentication"},
-    "match": {"all": [{"field": "status", "operator": "equals", "value": "failed"}]},
+    "match": {
+      "all": [
+        {"field": "status", "operator": "equals", "value": "failed"}
+      ]
+    },
     "threshold": {"count": 5, "groupBy": "sourceIp", "windowSeconds": 300},
     "suppresses": ["sentinelops-single-auth-failure"],
     "mitre": {"id": "T1110.001", "name": "Password Guessing", "tactic": "Credential Access"},
@@ -24,7 +28,11 @@
     "enabled": true,
     "confidence": 85,
     "logsource": {"product": "windows", "category": "process_creation"},
-    "match": {"all": [{"field": "command", "operator": "regex", "value": "(-enc(?:odedcommand)?\\s+|invoke-expression|\\biex\\b|downloadstring|invoke-webrequest|frombase64string|amsiutils|invoke-mimikatz|sekurlsa|bypass)"}]},
+    "match": {
+      "all": [
+        {"field": "command", "operator": "regex", "value": "(-enc(?:odedcommand)?\\s+|invoke-expression|\\biex\\b|downloadstring|invoke-webrequest|frombase64string|amsiutils|invoke-mimikatz|sekurlsa|bypass)"}
+      ]
+    },
     "mitre": {"id": "T1059.001", "name": "PowerShell", "tactic": "Execution"},
     "tags": ["attack.execution", "attack.t1059.001"],
     "falsepositives": ["Administrative automation using encoded scripts"]
@@ -38,7 +46,12 @@
     "enabled": true,
     "confidence": 80,
     "logsource": {"product": "windows", "category": "security"},
-    "match": {"any": [{"field": "eventId", "operator": "in", "value": ["4728", "4732", "4756", "7045", "1102"]}, {"field": "message", "operator": "regex", "value": "(domain admins|administrators group|sedebugprivilege|seimpersonateprivilege|audit log was cleared|new service installed)"}]},
+    "match": {
+      "any": [
+        {"field": "eventId", "operator": "in", "value": ["4728", "4732", "4756", "7045", "1102"]},
+        {"field": "message", "operator": "regex", "value": "(domain admins|administrators group|sedebugprivilege|seimpersonateprivilege|audit log was cleared|new service installed)"}
+      ]
+    },
     "mitre": {"id": "T1068", "name": "Exploitation for Privilege Escalation", "tactic": "Privilege Escalation"},
     "tags": ["attack.privilege_escalation", "attack.t1068"],
     "falsepositives": ["Approved administrator changes", "Software deployment"]
@@ -52,9 +65,226 @@
     "enabled": true,
     "confidence": 45,
     "logsource": {"product": "windows", "category": "authentication"},
-    "match": {"all": [{"field": "status", "operator": "equals", "value": "failed"}]},
+    "match": {
+      "all": [
+        {"field": "status", "operator": "equals", "value": "failed"}
+      ]
+    },
     "mitre": {"id": "T1110", "name": "Brute Force", "tactic": "Credential Access"},
     "tags": ["attack.credential_access", "attack.t1110"],
     "falsepositives": ["User typing an incorrect password"]
+  },
+  {
+    "id": "sentinelops-sysmon-lolbin-execution",
+    "title": "Suspicious Living-off-the-Land Binary Execution",
+    "description": "Common Windows binaries used by attackers were launched with suspicious command-line indicators.",
+    "status": "experimental",
+    "level": "High",
+    "enabled": true,
+    "confidence": 82,
+    "logsource": {"product": "windows", "service": "sysmon", "category": "process_creation"},
+    "match": {
+      "all": [
+        {"field": "eventId", "operator": "in", "value": ["1", "4688"]},
+        {"field": "all", "operator": "regex", "value": "(rundll32|regsvr32|mshta|wmic|certutil|bitsadmin|installutil|msbuild|forfiles|odbcconf)"},
+        {"field": "command", "operator": "regex", "value": "(http|https|javascript:|scrobj\\.dll|urlcache|decode|download|/transfer| -e | -enc)"}
+      ]
+    },
+    "mitre": {"id": "T1218", "name": "System Binary Proxy Execution", "tactic": "Defense Evasion"},
+    "tags": ["attack.defense_evasion", "attack.t1218"],
+    "falsepositives": ["Software installation scripts", "Administrative troubleshooting"]
+  },
+  {
+    "id": "sentinelops-sysmon-suspicious-parent-child",
+    "title": "Suspicious Office or Browser Child Process",
+    "description": "Office, PDF, archive, or browser processes spawned a shell or scripting tool.",
+    "status": "experimental",
+    "level": "High",
+    "enabled": true,
+    "confidence": 84,
+    "logsource": {"product": "windows", "service": "sysmon", "category": "process_creation"},
+    "match": {
+      "all": [
+        {"field": "eventId", "operator": "in", "value": ["1", "4688"]},
+        {"field": "parentProcess", "operator": "regex", "value": "(winword|excel|powerpnt|outlook|acrord32|chrome|msedge|firefox|7z|winrar)\\.exe"},
+        {"field": "process", "operator": "regex", "value": "(cmd|powershell|pwsh|wscript|cscript|mshta|rundll32|regsvr32)\\.exe"}
+      ]
+    },
+    "mitre": {"id": "T1204.002", "name": "Malicious File", "tactic": "Execution"},
+    "tags": ["attack.execution", "attack.t1204.002"],
+    "falsepositives": ["Document macros used by approved business workflows"]
+  },
+  {
+    "id": "sentinelops-sysmon-network-tool-connection",
+    "title": "Suspicious Tool Outbound Network Connection",
+    "description": "A scripting or administration tool created an outbound network connection.",
+    "status": "experimental",
+    "level": "Medium",
+    "enabled": true,
+    "confidence": 78,
+    "logsource": {"product": "windows", "service": "sysmon", "category": "network_connection"},
+    "match": {
+      "all": [
+        {"field": "eventId", "operator": "equals", "value": "3"},
+        {"field": "process", "operator": "regex", "value": "(powershell|pwsh|cmd|wscript|cscript|mshta|rundll32|regsvr32|certutil|bitsadmin)\\.exe"},
+        {"field": "destinationPort", "operator": "in", "value": ["80", "443", "4444", "8080", "8443"]}
+      ]
+    },
+    "mitre": {"id": "T1105", "name": "Ingress Tool Transfer", "tactic": "Command and Control"},
+    "tags": ["attack.command_and_control", "attack.t1105"],
+    "falsepositives": ["Administrative download scripts", "Patch management tools"]
+  },
+  {
+    "id": "sentinelops-sysmon-autorun-registry",
+    "title": "Registry Autorun Persistence",
+    "description": "A Run, RunOnce, Winlogon, or Services registry path was modified.",
+    "status": "experimental",
+    "level": "High",
+    "enabled": true,
+    "confidence": 80,
+    "logsource": {"product": "windows", "service": "sysmon", "category": "registry_event"},
+    "match": {
+      "all": [
+        {"field": "eventId", "operator": "in", "value": ["12", "13", "14", "4657"]},
+        {"field": "registryKey", "operator": "regex", "value": "(\\\\Run\\\\|\\\\RunOnce\\\\|\\\\Winlogon\\\\|\\\\Services\\\\|Userinit|Shell|Image File Execution Options)"}
+      ]
+    },
+    "mitre": {"id": "T1547.001", "name": "Registry Run Keys / Startup Folder", "tactic": "Persistence"},
+    "tags": ["attack.persistence", "attack.t1547.001"],
+    "falsepositives": ["Approved software installation", "Endpoint management agents"]
+  },
+  {
+    "id": "sentinelops-sysmon-suspicious-file-drop",
+    "title": "Suspicious Executable File Drop",
+    "description": "An executable or script was created in a high-risk user-writable location.",
+    "status": "experimental",
+    "level": "Medium",
+    "enabled": true,
+    "confidence": 72,
+    "logsource": {"product": "windows", "service": "sysmon", "category": "file_create"},
+    "match": {
+      "all": [
+        {"field": "eventId", "operator": "equals", "value": "11"},
+        {"field": "targetFilename", "operator": "regex", "value": "(\\\\AppData\\\\|\\\\Temp\\\\|\\\\Users\\\\Public\\\\|\\\\Downloads\\\\).+\\.(exe|dll|ps1|vbs|js|hta|bat|cmd|scr)$"}
+      ]
+    },
+    "mitre": {"id": "T1105", "name": "Ingress Tool Transfer", "tactic": "Command and Control"},
+    "tags": ["attack.command_and_control", "attack.t1105"],
+    "falsepositives": ["Browser downloads", "Software installers"]
+  },
+  {
+    "id": "sentinelops-defender-tamper",
+    "title": "Windows Defender Configuration Tampering",
+    "description": "Defender settings were changed or security controls appear to have been disabled.",
+    "status": "experimental",
+    "level": "High",
+    "enabled": true,
+    "confidence": 83,
+    "logsource": {"product": "windows", "service": "defender"},
+    "match": {
+      "any": [
+        {"field": "eventId", "operator": "in", "value": ["5007", "5013", "5015"]},
+        {"field": "message", "operator": "regex", "value": "(DisableRealtimeMonitoring|ExclusionPath|Tamper Protection|real-time protection.*disabled|Windows Defender.*disabled)"}
+      ]
+    },
+    "mitre": {"id": "T1562.001", "name": "Disable or Modify Tools", "tactic": "Defense Evasion"},
+    "tags": ["attack.defense_evasion", "attack.t1562.001"],
+    "falsepositives": ["Approved security policy deployment"]
+  },
+  {
+    "id": "sentinelops-security-log-cleared",
+    "title": "Security Event Log Cleared",
+    "description": "Windows Security event logs were cleared, which can indicate defense evasion.",
+    "status": "experimental",
+    "level": "High",
+    "enabled": true,
+    "confidence": 88,
+    "logsource": {"product": "windows", "category": "security"},
+    "match": {
+      "any": [
+        {"field": "eventId", "operator": "equals", "value": "1102"},
+        {"field": "message", "operator": "contains", "value": "audit log was cleared"}
+      ]
+    },
+    "mitre": {"id": "T1070.001", "name": "Clear Windows Event Logs", "tactic": "Defense Evasion"},
+    "tags": ["attack.defense_evasion", "attack.t1070.001"],
+    "falsepositives": ["Planned log maintenance with change approval"]
+  },
+  {
+    "id": "sentinelops-service-install-persistence",
+    "title": "Windows Service Installation",
+    "description": "A new Windows service was installed, which can indicate persistence or privilege execution.",
+    "status": "experimental",
+    "level": "High",
+    "enabled": true,
+    "confidence": 79,
+    "logsource": {"product": "windows", "category": "system"},
+    "match": {
+      "any": [
+        {"field": "eventId", "operator": "equals", "value": "7045"},
+        {"field": "message", "operator": "contains", "value": "service was installed"}
+      ]
+    },
+    "mitre": {"id": "T1543.003", "name": "Windows Service", "tactic": "Persistence"},
+    "tags": ["attack.persistence", "attack.t1543.003"],
+    "falsepositives": ["Approved software deployment", "Driver installation"]
+  },
+  {
+    "id": "sentinelops-account-created-or-enabled",
+    "title": "User Account Created or Enabled",
+    "description": "A local or domain account was created, enabled, or had credentials changed.",
+    "status": "experimental",
+    "level": "Medium",
+    "enabled": true,
+    "confidence": 74,
+    "logsource": {"product": "windows", "category": "account_management"},
+    "match": {
+      "any": [
+        {"field": "eventId", "operator": "in", "value": ["4720", "4722", "4724", "4738"]},
+        {"field": "message", "operator": "regex", "value": "(user account was created|user account was enabled|password reset|account was changed)"}
+      ]
+    },
+    "mitre": {"id": "T1098", "name": "Account Manipulation", "tactic": "Persistence"},
+    "tags": ["attack.persistence", "attack.t1098"],
+    "falsepositives": ["Normal identity administration"]
+  },
+  {
+    "id": "sentinelops-remote-interactive-logon",
+    "title": "Remote Interactive Logon",
+    "description": "A successful remote interactive logon was observed.",
+    "status": "experimental",
+    "level": "Medium",
+    "enabled": true,
+    "confidence": 70,
+    "logsource": {"product": "windows", "category": "authentication"},
+    "match": {
+      "all": [
+        {"field": "eventId", "operator": "equals", "value": "4624"},
+        {"field": "logonType", "operator": "in", "value": ["10", "7"]}
+      ]
+    },
+    "mitre": {"id": "T1021.001", "name": "Remote Desktop Protocol", "tactic": "Lateral Movement"},
+    "tags": ["attack.lateral_movement", "attack.t1021.001"],
+    "falsepositives": ["Expected RDP administration"]
+  },
+  {
+    "id": "sentinelops-password-spray-pattern",
+    "title": "Possible Password Spray",
+    "description": "Repeated failed logons from one source against multiple accounts.",
+    "status": "experimental",
+    "level": "High",
+    "enabled": true,
+    "confidence": 76,
+    "logsource": {"product": "windows", "category": "authentication"},
+    "match": {
+      "all": [
+        {"field": "status", "operator": "equals", "value": "failed"},
+        {"field": "sourceIp", "operator": "exists", "value": true}
+      ]
+    },
+    "threshold": {"count": 10, "groupBy": "sourceIp", "windowSeconds": 900},
+    "mitre": {"id": "T1110.003", "name": "Password Spraying", "tactic": "Credential Access"},
+    "tags": ["attack.credential_access", "attack.t1110.003"],
+    "falsepositives": ["Vulnerability scanning", "Broken application authentication"]
   }
 ]
