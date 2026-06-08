@@ -7,7 +7,7 @@ and keeps analysis history on the local machine.
 ![SentinelOps dashboard analyzing a public EVTX sample](dashboard-verification.png)
 
 > **v2.0 development:** The completed Phase 1 foundation, Phase 2 detection
-> engine, and Phase 3 Windows/Sysmon coverage are available in
+> engine, Phase 3 Windows/Sysmon coverage, and Phase 4 incident workflow are available in
 > [`v2.0/`](v2.0/README.md). The application in the repository root remains the
 > stable v1 release.
 
@@ -21,6 +21,7 @@ and keeps analysis history on the local machine.
 - Map alerts to MITRE ATT&CK techniques
 - Calculate Low, Medium, and High risk scores
 - Create custom keyword or regular-expression detection rules
+- Create and manage local incidents with owners, statuses, notes, and timelines
 - Store analysis history and collection checkpoints in SQLite
 - Export JSON, CSV, printable HTML, and PDF-ready reports
 - Keep logs local: the service binds to `127.0.0.1` and does not send data externally
@@ -111,8 +112,8 @@ contain usernames, hostnames, addresses, commands, and other sensitive informati
 
 SentinelOps is a portfolio and learning project, not a replacement for a production
 SIEM or EDR. Its detections are rule-based and should be validated by an analyst.
-Future work can add Sigma rules, threat-intelligence enrichment, incident workflow,
-automated tests, and ingestion from remote systems.
+Future work can add threat-intelligence enrichment, remote ingestion, and more advanced
+case automation.
 
 ## License
 
