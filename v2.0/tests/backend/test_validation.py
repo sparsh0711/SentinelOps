@@ -8,6 +8,9 @@ from backend.validation import (
     validate_analysis,
     validate_detection_settings,
     validate_evtx_filename,
+    validate_incident,
+    validate_incident_note,
+    validate_incident_update,
     validate_rule,
 )
 
@@ -85,6 +88,34 @@ class ValidationTests(unittest.TestCase):
         for rule in rules:
             validated = validate_rule(rule)
             self.assertEqual(validated["id"], rule["id"])
+
+    def test_incident_validation_from_alert(self):
+        incident = validate_incident(
+            {
+                "sourceName": "Security.evtx",
+                "alert": {
+                    "id": "alert-1",
+                    "ruleId": "suspicious-powershell",
+                    "title": "Suspicious PowerShell",
+                    "severity": "high",
+                    "riskScore": "90",
+                    "mitre": {"id": "T1059.001", "name": "PowerShell"},
+                },
+            }
+        )
+        self.assertEqual(incident["severity"], "High")
+        self.assertEqual(incident["status"], "New")
+        self.assertEqual(incident["mitreId"], "T1059.001")
+
+    def test_incident_update_rejects_unsupported_status(self):
+        with self.assertRaises(ApiError):
+            validate_incident_update({"status": "Waiting"})
+
+    def test_incident_note_requires_text(self):
+        note = validate_incident_note({"author": "Sparsh", "text": "Reviewed."})
+        self.assertEqual(note["author"], "Sparsh")
+        with self.assertRaises(ApiError):
+            validate_incident_note({"text": ""})
 
 
 if __name__ == "__main__":
