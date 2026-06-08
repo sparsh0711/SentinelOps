@@ -3,14 +3,14 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="SentinelOps v2 security log analyzer" />
-    <title>SentinelOps v2</title>
+    <meta name="description" content="SentinelOps v2 Phase 3 security log analyzer" />
+    <title>SentinelOps v2 Phase 3</title>
     <link rel="stylesheet" href="styles/main.css" />
   </head>
   <body>
     <div class="shell">
       <aside>
-        <div class="brand"><span>SO</span><div><strong>SentinelOps</strong><small>v2.0 detection engine</small></div></div>
+        <div class="brand"><span>SO</span><div><strong>SentinelOps</strong><small>v2.0 Phase 3</small></div></div>
         <nav>
           <button class="active" data-view="overview">Overview</button>
           <button disabled>Incidents <span>Phase 4</span></button>
@@ -30,7 +30,7 @@
 
         <div id="overview-view" class="view active">
         <section class="intro">
-          <div><span class="version">PHASE 2 ENGINE</span><h2 id="posture">Ready for real telemetry</h2><p>Analyze local logs with a modular detection pipeline.</p></div>
+          <div><span class="version">PHASE 3 COVERAGE</span><h2 id="posture">Ready for real telemetry</h2><p>Analyze Windows and Sysmon logs with expanded detection coverage.</p></div>
           <div class="risk"><span>Overall risk</span><strong id="risk-score">0</strong><em id="risk-level">LOW</em></div>
         </section>
 
@@ -65,7 +65,7 @@
 
         <div id="rules-view" class="view">
           <section class="intro">
-            <div><span class="version">PHASE 2</span><h2>Detection engineering</h2><p>Manage Sigma-inspired rules, thresholds, allowlists, and suppression.</p></div>
+            <div><span class="version">PHASE 3</span><h2>Detection engineering</h2><p>Manage expanded Windows/Sysmon rules, thresholds, allowlists, and suppression.</p></div>
             <div class="rule-total"><strong id="rule-count">0</strong><span>rules loaded</span></div>
           </section>
 
@@ -83,7 +83,7 @@
                   <label>Title<input id="rule-title" required placeholder="Suspicious Process Execution" /></label>
                   <label>Severity<select id="rule-level"><option>Low</option><option selected>Medium</option><option>High</option></select></label>
                   <label>Confidence<input id="rule-confidence" type="number" min="0" max="100" value="70" /></label>
-                  <label>Field<select id="rule-field"><option>eventId</option><option>status</option><option>user</option><option>sourceIp</option><option>host</option><option>process</option><option selected>command</option><option>message</option><option>all</option></select></label>
+                  <label>Field<select id="rule-field"><option>eventId</option><option>status</option><option>user</option><option>sourceIp</option><option>host</option><option>process</option><option>parentProcess</option><option selected>command</option><option>message</option><option>logonType</option><option>destinationIp</option><option>destinationPort</option><option>targetFilename</option><option>registryKey</option><option>serviceName</option><option>hash</option><option>all</option></select></label>
                   <label>Operator<select id="rule-operator"><option>equals</option><option>contains</option><option selected>regex</option><option>in</option><option>exists</option></select></label>
                   <label class="wide">Match value<input id="rule-value" required placeholder="rundll32|regsvr32" /></label>
                   <label>Threshold count<input id="rule-threshold-count" type="number" min="1" placeholder="Optional" /></label>
