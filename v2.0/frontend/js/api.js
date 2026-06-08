@@ -48,4 +48,21 @@ export const api = {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(settings),
   }),
+  listIncidents: (status = "") => request(`/incidents${status ? `?status=${encodeURIComponent(status)}` : ""}`),
+  getIncident: (id) => request(`/incidents/${encodeURIComponent(id)}`),
+  createIncident: (incident) => request("/incidents", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(incident),
+  }),
+  updateIncident: (id, patch) => request(`/incidents/${encodeURIComponent(id)}/update`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(patch),
+  }),
+  addIncidentNote: (id, note) => request(`/incidents/${encodeURIComponent(id)}/notes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(note),
+  }),
 };
