@@ -10,6 +10,9 @@ from .validation import (
     validate_analysis,
     validate_detection_settings,
     validate_evtx_filename,
+    validate_incident,
+    validate_incident_note,
+    validate_incident_update,
     validate_rule,
 )
 from .windows import ALLOWED_CHANNELS, collect, parse_evtx
@@ -36,6 +39,18 @@ class Api:
                 params.get("limit", [100])[0], "limit", 100, maximum=100
             )
             return {"analyses": self.database.list_analyses(limit)}, 200
+        if path == "/api/v2/incidents":
+            limit = bounded_int(
+                params.get("limit", [100])[0], "limit", 100, maximum=100
+            )
+            status = params.get("status", [""])[0] or None
+            return {"incidents": self.database.list_incidents(limit, status)}, 200
+        if path.startswith("/api/v2/incidents/"):
+            try:
+                incident_id = int(path.rsplit("/", 1)[-1])
+            except ValueError as error:
+                raise ApiError("Incident ID must be an integer.") from error
+            return self.database.get_incident(incident_id), 200
         if path == "/api/v2/rules":
             return {"rules": self.rules.list_rules()}, 200
         if path.startswith("/api/v2/rules/"):
@@ -82,6 +97,17 @@ class Api:
             analysis = validate_analysis(payload)
             analysis_id = self.database.save_analysis(analysis)
             return {"saved": True, "id": analysis_id}, 201
+        if path == "/api/v2/incidents":
+            incident = validate_incident(payload)
+            return self.database.create_incident(incident), 201
+        if path.startswith("/api/v2/incidents/") and path.endswith("/update"):
+            incident_id = self._extract_nested_id(path, "incidents", "update")
+            patch = validate_incident_update(payload)
+            return self.database.update_incident(incident_id, patch), 200
+        if path.startswith("/api/v2/incidents/") and path.endswith("/notes"):
+            incident_id = self._extract_nested_id(path, "incidents", "notes")
+            note = validate_incident_note(payload)
+            return self.database.add_incident_note(incident_id, note), 200
         if path == "/api/v2/rules":
             rule = validate_rule(payload)
             return self.rules.save_rule(rule, source="custom"), 201
@@ -105,6 +131,15 @@ class Api:
             self.database.reset_checkpoint(channel)
             return {"reset": True, "channel": channel}, 200
         raise ApiError("API endpoint not found.", status=404, code="not_found")
+
+    def _extract_nested_id(self, path, resource, action):
+        prefix = f"/api/v2/{resource}/"
+        suffix = f"/{action}"
+        raw_id = path.removeprefix(prefix).removesuffix(suffix)
+        try:
+            return int(raw_id)
+        except ValueError as error:
+            raise ApiError("Incident ID must be an integer.") from error
 
     def import_evtx(self, filename, stream, content_length, query):
         safe_name = validate_evtx_filename(filename)
