@@ -5,6 +5,13 @@ from .errors import ApiError
 
 ALLOWED_RISK_LEVELS = {"Low", "Medium", "High"}
 ALLOWED_OPERATORS = {"equals", "contains", "regex", "in", "exists"}
+ALLOWED_INCIDENT_STATUSES = {
+    "New",
+    "Investigating",
+    "Contained",
+    "Resolved",
+    "False Positive",
+}
 
 
 def bounded_int(value, name, default, minimum=1, maximum=5000):
@@ -169,4 +176,85 @@ def validate_detection_settings(payload):
         ),
         "severityOverrides": normalized_severity,
         "thresholdOverrides": normalized_thresholds,
+    }
+
+
+def validate_incident(payload):
+    if not isinstance(payload, dict):
+        raise ApiError("Incident payload must be a JSON object.", code="invalid_incident")
+    alert = payload.get("alert", payload)
+    if not isinstance(alert, dict):
+        raise ApiError("Incident alert must be an object.", code="invalid_incident")
+    title = str(alert.get("title") or payload.get("title") or "").strip()
+    if not title:
+        raise ApiError("Incident title is required.", code="invalid_incident")
+    severity = str(alert.get("severity") or payload.get("severity") or "Low").title()
+    if severity not in ALLOWED_RISK_LEVELS:
+        raise ApiError("Incident severity must be Low, Medium, or High.", code="invalid_incident")
+    status = str(payload.get("status") or "New").title()
+    if status == "False positive":
+        status = "False Positive"
+    if status not in ALLOWED_INCIDENT_STATUSES:
+        raise ApiError("Incident status is not supported.", code="invalid_incident")
+    mitre = alert.get("mitre") if isinstance(alert.get("mitre"), dict) else {}
+    risk_score = bounded_int(
+        alert.get("riskScore", payload.get("riskScore", 0)),
+        "riskScore",
+        0,
+        minimum=0,
+        maximum=100,
+    )
+    return {
+        "title": title[:200],
+        "severity": severity,
+        "status": status,
+        "owner": str(payload.get("owner", "")).strip()[:120],
+        "sourceName": str(payload.get("sourceName") or alert.get("sourceName") or "").strip()[:255],
+        "alertId": str(alert.get("id") or payload.get("alertId") or "").strip()[:120],
+        "ruleId": str(alert.get("ruleId") or alert.get("rule_id") or payload.get("ruleId") or "").strip()[:120],
+        "mitreId": str(mitre.get("id") or alert.get("mitreId") or payload.get("mitreId") or "").strip()[:40],
+        "riskScore": risk_score,
+        "description": str(alert.get("description") or payload.get("description") or "").strip()[:1000],
+        "evidence": alert.get("evidence") or alert.get("events") or payload.get("evidence") or [],
+        "alert": alert,
+    }
+
+
+def validate_incident_update(payload):
+    if not isinstance(payload, dict):
+        raise ApiError("Incident update must be a JSON object.", code="invalid_incident")
+    normalized = {"actor": str(payload.get("actor") or "analyst").strip()[:120]}
+    if "title" in payload:
+        title = str(payload["title"]).strip()
+        if not title:
+            raise ApiError("Incident title cannot be empty.", code="invalid_incident")
+        normalized["title"] = title[:200]
+    if "severity" in payload:
+        severity = str(payload["severity"]).title()
+        if severity not in ALLOWED_RISK_LEVELS:
+            raise ApiError("Incident severity must be Low, Medium, or High.", code="invalid_incident")
+        normalized["severity"] = severity
+    if "status" in payload:
+        status = str(payload["status"]).title()
+        if status == "False positive":
+            status = "False Positive"
+        if status not in ALLOWED_INCIDENT_STATUSES:
+            raise ApiError("Incident status is not supported.", code="invalid_incident")
+        normalized["status"] = status
+    if "owner" in payload:
+        normalized["owner"] = str(payload["owner"]).strip()[:120]
+    if set(normalized) == {"actor"}:
+        raise ApiError("Incident update did not include any changes.", code="invalid_incident")
+    return normalized
+
+
+def validate_incident_note(payload):
+    if not isinstance(payload, dict):
+        raise ApiError("Incident note must be a JSON object.", code="invalid_incident")
+    text = str(payload.get("text", "")).strip()
+    if not text:
+        raise ApiError("Incident note cannot be empty.", code="invalid_incident")
+    return {
+        "author": str(payload.get("author") or "analyst").strip()[:120] or "analyst",
+        "text": text[:2000],
     }
