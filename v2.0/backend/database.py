@@ -8,6 +8,20 @@ from .errors import NotFoundError
 
 
 MIGRATIONS_DIR = Path(__file__).with_name("migrations")
+SUMMARY_FIELDS = (
+    "id",
+    "created_at",
+    "updated_at",
+    "title",
+    "severity",
+    "status",
+    "owner",
+    "source_name",
+    "alert_id",
+    "rule_id",
+    "mitre_id",
+    "risk_score",
+)
 
 
 def utc_now():
@@ -121,3 +135,154 @@ class Database:
             connection.execute(
                 "DELETE FROM collection_checkpoints WHERE channel = ?", (channel,)
             )
+
+    def _incident_from_row(self, row, include_payload=False):
+        incident = {field: row[field] for field in SUMMARY_FIELDS}
+        notes = json.loads(row["notes"] or "[]")
+        timeline = json.loads(row["timeline"] or "[]")
+        incident["notes_count"] = len(notes)
+        incident["timeline_count"] = len(timeline)
+        if include_payload:
+            incident["payload"] = json.loads(row["payload"] or "{}")
+            incident["notes"] = notes
+            incident["timeline"] = timeline
+        return incident
+
+    def list_incidents(self, limit=100, status=None):
+        query = """
+            SELECT *
+            FROM incidents
+        """
+        parameters = []
+        if status:
+            query += " WHERE status = ?"
+            parameters.append(status)
+        query += " ORDER BY updated_at DESC, id DESC LIMIT ?"
+        parameters.append(limit)
+        with self.connect() as connection:
+            rows = connection.execute(query, parameters).fetchall()
+        return [self._incident_from_row(row) for row in rows]
+
+    def get_incident(self, incident_id):
+        with self.connect() as connection:
+            row = connection.execute(
+                "SELECT * FROM incidents WHERE id = ?", (incident_id,)
+            ).fetchone()
+        if not row:
+            raise NotFoundError("Incident not found.")
+        return self._incident_from_row(row, include_payload=True)
+
+    def create_incident(self, payload):
+        now = utc_now()
+        timeline = [
+            {
+                "time": now,
+                "actor": payload.get("owner") or "system",
+                "action": "Incident created",
+                "details": "Created from a detection alert.",
+            }
+        ]
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                INSERT INTO incidents (
+                    created_at, updated_at, title, severity, status, owner,
+                    source_name, alert_id, rule_id, mitre_id, risk_score,
+                    payload, notes, timeline
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    now,
+                    now,
+                    payload["title"],
+                    payload["severity"],
+                    payload["status"],
+                    payload["owner"],
+                    payload["sourceName"],
+                    payload["alertId"],
+                    payload["ruleId"],
+                    payload["mitreId"],
+                    payload["riskScore"],
+                    json.dumps(payload, ensure_ascii=False),
+                    json.dumps([], ensure_ascii=False),
+                    json.dumps(timeline, ensure_ascii=False),
+                ),
+            )
+        return self.get_incident(cursor.lastrowid)
+
+    def update_incident(self, incident_id, patch):
+        incident = self.get_incident(incident_id)
+        updates = {}
+        for key, column in (
+            ("title", "title"),
+            ("severity", "severity"),
+            ("status", "status"),
+            ("owner", "owner"),
+        ):
+            if key in patch and patch[key] != incident[column]:
+                updates[column] = patch[key]
+        if not updates:
+            return incident
+        now = utc_now()
+        timeline = incident["timeline"]
+        changed = ", ".join(f"{key}: {value}" for key, value in updates.items())
+        timeline.append(
+            {
+                "time": now,
+                "actor": patch.get("actor") or "analyst",
+                "action": "Incident updated",
+                "details": changed,
+            }
+        )
+        assignments = ", ".join(f"{column} = ?" for column in updates)
+        values = list(updates.values()) + [
+            now,
+            json.dumps(timeline, ensure_ascii=False),
+            incident_id,
+        ]
+        with self.connect() as connection:
+            connection.execute(
+                f"""
+                UPDATE incidents
+                SET {assignments}, updated_at = ?, timeline = ?
+                WHERE id = ?
+                """,
+                values,
+            )
+        return self.get_incident(incident_id)
+
+    def add_incident_note(self, incident_id, note):
+        incident = self.get_incident(incident_id)
+        now = utc_now()
+        notes = incident["notes"]
+        notes.append(
+            {
+                "time": now,
+                "author": note["author"],
+                "text": note["text"],
+            }
+        )
+        timeline = incident["timeline"]
+        timeline.append(
+            {
+                "time": now,
+                "actor": note["author"],
+                "action": "Note added",
+                "details": note["text"][:180],
+            }
+        )
+        with self.connect() as connection:
+            connection.execute(
+                """
+                UPDATE incidents
+                SET updated_at = ?, notes = ?, timeline = ?
+                WHERE id = ?
+                """,
+                (
+                    now,
+                    json.dumps(notes, ensure_ascii=False),
+                    json.dumps(timeline, ensure_ascii=False),
+                    incident_id,
+                ),
+            )
+        return self.get_incident(incident_id)
