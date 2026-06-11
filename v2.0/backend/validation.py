@@ -182,10 +182,17 @@ def validate_detection_settings(payload):
 def validate_incident(payload):
     if not isinstance(payload, dict):
         raise ApiError("Incident payload must be a JSON object.", code="invalid_incident")
-    alert = payload.get("alert", payload)
+    alerts = payload.get("alerts")
+    if alerts is not None and not isinstance(alerts, list):
+        raise ApiError("Incident alerts must be an array.", code="invalid_incident")
+    alert = payload.get("alert")
+    if not isinstance(alert, dict) and isinstance(alerts, list) and alerts:
+        alert = alerts[0]
+    if not isinstance(alert, dict):
+        alert = payload
     if not isinstance(alert, dict):
         raise ApiError("Incident alert must be an object.", code="invalid_incident")
-    title = str(alert.get("title") or payload.get("title") or "").strip()
+    title = str(payload.get("title") or alert.get("title") or "").strip()
     if not title:
         raise ApiError("Incident title is required.", code="invalid_incident")
     severity = str(alert.get("severity") or payload.get("severity") or "Low").title()
@@ -215,8 +222,9 @@ def validate_incident(payload):
         "mitreId": str(mitre.get("id") or alert.get("mitreId") or payload.get("mitreId") or "").strip()[:40],
         "riskScore": risk_score,
         "description": str(alert.get("description") or payload.get("description") or "").strip()[:1000],
-        "evidence": alert.get("evidence") or alert.get("events") or payload.get("evidence") or [],
+        "evidence": payload.get("evidence") or alert.get("evidence") or alert.get("events") or [],
         "alert": alert,
+        "alerts": alerts if isinstance(alerts, list) else [alert],
     }
 
 
