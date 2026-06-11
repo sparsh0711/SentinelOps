@@ -8,28 +8,15 @@ $candidates = @(
     "py.exe",
     "python.exe"
 )
-
 $python = $null
 foreach ($candidate in $candidates) {
     try {
-        if ([System.IO.Path]::IsPathRooted($candidate) -and -not (Test-Path -LiteralPath $candidate)) {
-            continue
-        }
+        if ([System.IO.Path]::IsPathRooted($candidate) -and -not (Test-Path -LiteralPath $candidate)) { continue }
         $version = & $candidate --version 2>&1
-        if ($LASTEXITCODE -eq 0 -and "$version" -match "^Python 3\.") {
-            $python = $candidate
-            break
-        }
-    }
-    catch {
-        continue
-    }
+        if ($LASTEXITCODE -eq 0 -and "$version" -match "^Python 3\.") { $python = $candidate; break }
+    } catch { continue }
 }
-
-if (-not $python) {
-    Write-Error "Python 3.10 or newer is required."
-}
-
+if (-not $python) { Write-Error "Python 3.10 or newer is required." }
 Set-Location -LiteralPath $PSScriptRoot
-Write-Host "Starting SentinelOps v2.0 Phase 5 at http://127.0.0.1:8081"
+Write-Host "Starting SentinelOps v2.0 Phase 6 at http://127.0.0.1:8081"
 & $python -m backend.app
