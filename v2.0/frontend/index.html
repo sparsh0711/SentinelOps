@@ -3,163 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="SentinelOps v2 Phase 4 security log analyzer and SOC dashboard" />
-    <title>SentinelOps v2 Phase 4</title>
+    <meta name="description" content="SentinelOps v2 Phase 5 AI incident summary engine" />
+    <title>SentinelOps v2 Phase 5</title>
     <link rel="stylesheet" href="styles/main.css" />
   </head>
   <body>
     <div class="shell">
       <aside>
-        <div class="brand"><span>SO</span><div><strong>SentinelOps</strong><small>v2.0 Phase 4</small></div></div>
-        <nav>
-          <button class="active" data-view="overview">Overview</button>
-          <button data-view="incidents">Incidents</button>
-          <button data-view="rules">Detection rules</button>
-        </nav>
+        <div class="brand"><span>SO</span><div><strong>SentinelOps</strong><small>v2.0 Phase 5</small></div></div>
+        <nav><button class="active" data-view="overview">Overview</button><button data-view="incidents">Incidents</button><button data-view="rules">Detection rules</button></nav>
         <div class="service"><i id="service-dot"></i><div><strong id="service-label">Connecting</strong><small>API v2</small></div></div>
       </aside>
-
       <main>
-        <header>
-          <div><p>SOC / OVERVIEW</p><h1>Security overview</h1></div>
-          <div class="actions">
-            <span class="source" id="source-name">No logs loaded</span>
-            <button id="open-import">Analyze logs</button>
-          </div>
-        </header>
-
+        <header><div><p>SOC / OVERVIEW</p><h1>Security overview</h1></div><div class="actions"><span class="source" id="source-name">No logs loaded</span><button id="open-import">Analyze logs</button></div></header>
         <div id="overview-view" class="view active">
-        <section class="intro">
-          <div><span class="version">PHASE 4 INCIDENT WORKFLOW</span><h2 id="posture">Ready for real telemetry</h2><p>Analyze Windows and Sysmon logs, then turn alerts into trackable incidents.</p></div>
-          <div class="risk"><span>Overall risk</span><strong id="risk-score">0</strong><em id="risk-level">LOW</em></div>
-        </section>
-
-        <section class="metrics">
-          <article><span>Total events</span><strong id="event-count">0</strong><small>Normalized records</small></article>
-          <article><span>Security alerts</span><strong id="alert-count">0</strong><small id="high-count">0 high severity</small></article>
-          <article><span>Source addresses</span><strong id="ip-count">0</strong><small>Observed in telemetry</small></article>
-          <article><span>MITRE techniques</span><strong id="mitre-count">0</strong><small>Mapped detections</small></article>
-        </section>
-
-        <section class="grid">
-          <article class="panel alerts-panel">
-            <div class="panel-head"><div><h3>Priority alerts</h3><p>Rule matches requiring review</p></div></div>
-            <div id="alerts" class="list empty">Analyze logs to populate findings.</div>
-          </article>
-          <article class="panel">
-            <div class="panel-head"><div><h3>MITRE ATT&CK</h3><p>Technique coverage</p></div></div>
-            <div id="mitre" class="list empty">No techniques detected.</div>
-          </article>
-        </section>
-
-        <section class="panel">
-          <div class="panel-head"><div><h3>Event explorer</h3><p id="event-summary">No events loaded</p></div><input id="event-search" placeholder="Filter events" /></div>
-          <div class="table-wrap">
-            <table>
-              <thead><tr><th>Time</th><th>Event</th><th>User</th><th>Source IP</th><th>Host</th><th>Status</th></tr></thead>
-              <tbody id="events"><tr><td colspan="6" class="empty-cell">No events to display.</td></tr></tbody>
-            </table>
-          </div>
-        </section>
+          <section class="intro"><div><span class="version">PHASE 5 EVIDENCE-GROUNDED AI</span><h2 id="posture">Ready for real telemetry</h2><p>Analyze logs, correlate alerts, and generate evidence-grounded incident summaries.</p></div><div class="risk"><span>Overall risk</span><strong id="risk-score">0</strong><em id="risk-level">LOW</em></div></section>
+          <section class="metrics"><article><span>Total events</span><strong id="event-count">0</strong><small>Normalized records</small></article><article><span>Security alerts</span><strong id="alert-count">0</strong><small id="high-count">0 high severity</small></article><article><span>Source addresses</span><strong id="ip-count">0</strong><small>Observed in telemetry</small></article><article><span>MITRE techniques</span><strong id="mitre-count">0</strong><small>Mapped detections</small></article></section>
+          <section class="grid"><article class="panel alerts-panel"><div class="panel-head"><div><h3>Priority alerts</h3><p>Rule matches requiring review</p></div><button id="create-correlated-incident" class="mini-action" disabled>Create correlated incident</button></div><div id="alerts" class="list empty">Analyze logs to populate findings.</div></article><article class="panel"><div class="panel-head"><div><h3>MITRE ATT&CK</h3><p>Technique coverage</p></div></div><div id="mitre" class="list empty">No techniques detected.</div></article></section>
+          <section class="panel"><div class="panel-head"><div><h3>Event explorer</h3><p id="event-summary">No events loaded</p></div><input id="event-search" placeholder="Filter events" /></div><div class="table-wrap"><table><thead><tr><th>Time</th><th>Event</th><th>User</th><th>Source IP</th><th>Host</th><th>Status</th></tr></thead><tbody id="events"><tr><td colspan="6" class="empty-cell">No events to display.</td></tr></tbody></table></div></section>
         </div>
-
         <div id="incidents-view" class="view">
-          <section class="intro">
-            <div><span class="version">PHASE 4</span><h2>Incident queue</h2><p>Create cases from real alert data, assign an owner, track status, and keep investigation notes.</p></div>
-            <div class="rule-total"><strong id="incident-count">0</strong><span>open cases</span></div>
-          </section>
-
-          <section class="incidents-layout">
-            <article class="panel">
-              <div class="panel-head"><div><h3>Case queue</h3><p>Saved locally in the v2 database.</p></div><select id="incident-filter"><option value="">All statuses</option><option>New</option><option>Investigating</option><option>Contained</option><option>Resolved</option><option>False Positive</option></select></div>
-              <div id="incident-list" class="incident-list empty">No incidents created yet.</div>
-            </article>
-
-            <article class="panel incident-detail-panel">
-              <div class="panel-head"><div><h3>Case details</h3><p id="incident-detail-summary">Select an incident to investigate.</p></div></div>
-              <div id="incident-detail" class="empty">Create an incident from an alert or select one from the queue.</div>
-              <p class="error" id="incident-error"></p>
-            </article>
-          </section>
+          <section class="intro"><div><span class="version">PHASE 5</span><h2>Incident queue</h2><p>Manage cases and generate summaries that use only their saved alert and event evidence.</p></div><div class="rule-total"><strong id="incident-count">0</strong><span>open cases</span></div></section>
+          <section class="incidents-layout"><article class="panel"><div class="panel-head"><div><h3>Case queue</h3><p>Saved locally in the v2 database.</p></div><select id="incident-filter"><option value="">All statuses</option><option>New</option><option>Investigating</option><option>Contained</option><option>Resolved</option><option>False Positive</option></select></div><div id="incident-list" class="incident-list empty">No incidents created yet.</div></article><article class="panel incident-detail-panel"><div class="panel-head"><div><h3>Case details</h3><p id="incident-detail-summary">Select an incident to investigate.</p></div></div><div id="incident-detail" class="empty">Create an incident from an alert or select one from the queue.</div><p class="error" id="incident-error"></p></article></section>
         </div>
-
         <div id="rules-view" class="view">
-          <section class="intro">
-            <div><span class="version">PHASE 4</span><h2>Detection engineering</h2><p>Manage expanded Windows/Sysmon rules, thresholds, allowlists, and suppression.</p></div>
-            <div class="rule-total"><strong id="rule-count">0</strong><span>rules loaded</span></div>
-          </section>
-
-          <section class="rules-layout">
-            <article class="panel">
-              <div class="panel-head"><div><h3>Rule library</h3><p>Enable, override, or remove custom rules.</p></div><label class="import-rules">Import JSON<input id="rule-import" type="file" accept=".json" /></label></div>
-              <div id="rule-list" class="rule-list empty">Connect to API v2 to load rules.</div>
-            </article>
-
-            <article class="panel">
-              <div class="panel-head"><div><h3>Create or update rule</h3><p>Sigma-inspired metadata with a focused condition builder.</p></div></div>
-              <form id="rule-form" class="rule-form">
-                <div class="form-grid">
-                  <label>Rule ID<input id="rule-id" required placeholder="custom-suspicious-process" /></label>
-                  <label>Title<input id="rule-title" required placeholder="Suspicious Process Execution" /></label>
-                  <label>Severity<select id="rule-level"><option>Low</option><option selected>Medium</option><option>High</option></select></label>
-                  <label>Confidence<input id="rule-confidence" type="number" min="0" max="100" value="70" /></label>
-                  <label>Field<select id="rule-field"><option>eventId</option><option>status</option><option>user</option><option>sourceIp</option><option>host</option><option>process</option><option>parentProcess</option><option selected>command</option><option>message</option><option>logonType</option><option>destinationIp</option><option>destinationPort</option><option>targetFilename</option><option>registryKey</option><option>serviceName</option><option>hash</option><option>all</option></select></label>
-                  <label>Operator<select id="rule-operator"><option>equals</option><option>contains</option><option selected>regex</option><option>in</option><option>exists</option></select></label>
-                  <label class="wide">Match value<input id="rule-value" required placeholder="rundll32|regsvr32" /></label>
-                  <label>Threshold count<input id="rule-threshold-count" type="number" min="1" placeholder="Optional" /></label>
-                  <label>Window seconds<input id="rule-window" type="number" min="1" value="300" /></label>
-                  <label>Group by<select id="rule-group"><option value="">None</option><option>sourceIp</option><option>user</option><option>host</option><option>process</option></select></label>
-                  <label>MITRE ID<input id="rule-mitre-id" value="T1059" /></label>
-                  <label>MITRE technique<input id="rule-mitre-name" value="Command and Scripting Interpreter" /></label>
-                  <label class="wide">Description<textarea id="rule-description" required placeholder="Explain the behavior detected by this rule."></textarea></label>
-                </div>
-                <p class="error" id="rule-error"></p>
-                <button type="submit">Save rule</button>
-              </form>
-            </article>
-          </section>
-
-          <section class="grid rules-bottom">
-            <article class="panel">
-              <div class="panel-head"><div><h3>Allowlists and suppression</h3><p>One value or wildcard pattern per line.</p></div></div>
-              <form id="settings-form" class="rule-form">
-                <div class="form-grid">
-                  <label>Users<textarea id="allow-users" placeholder="svc_backup&#10;admin-*"></textarea></label>
-                  <label>Hosts<textarea id="allow-hosts" placeholder="LAB-*"></textarea></label>
-                  <label>Source IPs<textarea id="allow-ips" placeholder="10.0.2.17"></textarea></label>
-                  <label>Processes<textarea id="allow-processes" placeholder="C:\Windows\System32\trusted.exe"></textarea></label>
-                  <label>Duplicate suppression<input id="suppression-window" type="number" min="1" value="300" /><span>seconds</span></label>
-                </div>
-                <button type="submit">Save engine settings</button>
-              </form>
-            </article>
-            <article class="panel">
-              <div class="panel-head"><div><h3>Rule test bench</h3><p>Test a rule against JSON events.</p></div></div>
-              <select id="test-rule"></select>
-              <textarea id="test-events" placeholder='[{"event_id":4104,"command":"powershell.exe -EncodedCommand SQBFAFgA"}]'></textarea>
-              <button id="test-rule-button" type="button">Run rule test</button>
-              <div id="test-result" class="test-result empty">No rule test has run.</div>
-            </article>
-          </section>
+          <section class="intro"><div><span class="version">PHASE 5</span><h2>Detection engineering</h2><p>Manage expanded Windows/Sysmon rules, thresholds, allowlists, and suppression.</p></div><div class="rule-total"><strong id="rule-count">0</strong><span>rules loaded</span></div></section>
+          <section class="rules-layout"><article class="panel"><div class="panel-head"><div><h3>Rule library</h3><p>Enable, override, or remove custom rules.</p></div><label class="import-rules">Import JSON<input id="rule-import" type="file" accept=".json" /></label></div><div id="rule-list" class="rule-list empty">Connect to API v2 to load rules.</div></article><article class="panel"><div class="panel-head"><div><h3>Create or update rule</h3><p>Sigma-inspired metadata with a focused condition builder.</p></div></div><form id="rule-form" class="rule-form"><div class="form-grid"><label>Rule ID<input id="rule-id" required /></label><label>Title<input id="rule-title" required /></label><label>Severity<select id="rule-level"><option>Low</option><option selected>Medium</option><option>High</option></select></label><label>Confidence<input id="rule-confidence" type="number" min="0" max="100" value="70" /></label><label>Field<select id="rule-field"><option>eventId</option><option>status</option><option>user</option><option>sourceIp</option><option>host</option><option>process</option><option>parentProcess</option><option selected>command</option><option>message</option><option>logonType</option><option>destinationIp</option><option>destinationPort</option><option>targetFilename</option><option>registryKey</option><option>serviceName</option><option>hash</option><option>all</option></select></label><label>Operator<select id="rule-operator"><option>equals</option><option>contains</option><option selected>regex</option><option>in</option><option>exists</option></select></label><label class="wide">Match value<input id="rule-value" required /></label><label>Threshold count<input id="rule-threshold-count" type="number" min="1" /></label><label>Window seconds<input id="rule-window" type="number" min="1" value="300" /></label><label>Group by<select id="rule-group"><option value="">None</option><option>sourceIp</option><option>user</option><option>host</option><option>process</option></select></label><label>MITRE ID<input id="rule-mitre-id" value="T1059" /></label><label>MITRE technique<input id="rule-mitre-name" value="Command and Scripting Interpreter" /></label><label class="wide">Description<textarea id="rule-description" required></textarea></label></div><p class="error" id="rule-error"></p><button type="submit">Save rule</button></form></article></section>
+          <section class="grid rules-bottom"><article class="panel"><div class="panel-head"><div><h3>Allowlists and suppression</h3><p>One value or wildcard pattern per line.</p></div></div><form id="settings-form" class="rule-form"><div class="form-grid"><label>Users<textarea id="allow-users"></textarea></label><label>Hosts<textarea id="allow-hosts"></textarea></label><label>Source IPs<textarea id="allow-ips"></textarea></label><label>Processes<textarea id="allow-processes"></textarea></label><label>Duplicate suppression<input id="suppression-window" type="number" min="1" value="300" /><span>seconds</span></label></div><button type="submit">Save engine settings</button></form></article><article class="panel"><div class="panel-head"><div><h3>Rule test bench</h3><p>Test a rule against JSON events.</p></div></div><select id="test-rule"></select><textarea id="test-events"></textarea><button id="test-rule-button" type="button">Run rule test</button><div id="test-result" class="test-result empty">No rule test has run.</div></article></section>
         </div>
       </main>
     </div>
-
-    <div class="modal" id="import-modal" hidden>
-      <div class="dialog">
-        <div class="dialog-head"><div><span>LOCAL ANALYZER</span><h2>Analyze security logs</h2></div><button class="close" id="close-import">Close</button></div>
-        <label class="drop">
-          <input id="file-input" type="file" accept=".evtx,.json,.jsonl,.csv,.log,.txt" />
-          <strong>Choose an EVTX, JSON, JSONL, CSV, LOG, or TXT file</strong>
-          <span id="file-name">No file selected</span>
-        </label>
-        <div class="divider">or paste structured logs</div>
-        <textarea id="log-input" placeholder='[{"timestamp":"2026-01-01T10:00:00Z","event_id":4625,"user":"analyst","source_ip":"203.0.113.10"}]'></textarea>
-        <p class="error" id="error"></p>
-        <div class="dialog-actions"><button id="run-analysis">Run analysis</button></div>
-      </div>
-    </div>
-
+    <div class="modal" id="import-modal" hidden><div class="dialog"><div class="dialog-head"><div><span>LOCAL ANALYZER</span><h2>Analyze security logs</h2></div><button class="close" id="close-import">Close</button></div><label class="drop"><input id="file-input" type="file" accept=".evtx,.json,.jsonl,.csv,.log,.txt" /><strong>Choose an EVTX, JSON, JSONL, CSV, LOG, or TXT file</strong><span id="file-name">No file selected</span></label><div class="divider">or paste structured logs</div><textarea id="log-input"></textarea><p class="error" id="error"></p><div class="dialog-actions"><button id="run-analysis">Run analysis</button></div></div></div>
     <script type="module" src="js/main.js"></script>
   </body>
 </html>
