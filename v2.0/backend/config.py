@@ -26,6 +26,9 @@ class Settings:
     log_level: str
     max_upload_bytes: int
     max_events: int
+    openai_api_key: str = ""
+    openai_model: str = "gpt-5.5"
+    ai_timeout_seconds: int = 45
 
     @classmethod
     def from_env(cls):
@@ -41,4 +44,11 @@ class Settings:
                 "SENTINELOPS_V2_MAX_UPLOAD_BYTES", 100 * 1024 * 1024
             ),
             max_events=_positive_int("SENTINELOPS_V2_MAX_EVENTS", 5000, 50000),
+            openai_api_key=os.environ.get("OPENAI_API_KEY", "").strip(),
+            openai_model=os.environ.get(
+                "SENTINELOPS_OPENAI_MODEL", "gpt-5.5"
+            ).strip(),
+            ai_timeout_seconds=_positive_int(
+                "SENTINELOPS_AI_TIMEOUT_SECONDS", 45, 180
+            ),
         )
