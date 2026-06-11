@@ -1,4 +1,4 @@
-# SentinelOps v2 Phase 4 Architecture
+# SentinelOps v2 Phase 5 Architecture
 
 ## Backend
 
@@ -10,10 +10,10 @@
 - `validation.py`: request and domain validation
 - `windows.py`: Windows Event Log and EVTX PowerShell adapter
 - `rules.py`: detection rule and engine-setting repository
+- `ai_summary.py`: evidence packet creation, local summaries, OpenAI provider, and schema validation
 - `migrations/`: ordered, one-time database schema changes
 
-The backend uses only the Python standard library. JSON request logs contain a request
-ID, method, path, status, and duration without writing uploaded event content.
+The backend uses only the Python standard library. JSON request logs contain request metadata without writing uploaded event content.
 
 ## Frontend
 
@@ -25,95 +25,30 @@ ID, method, path, status, and duration without writing uploaded event content.
 - `ui.js`: DOM rendering and event binding
 - `main.js`: application composition
 
-Detection and parsing modules are independent of the DOM, which allows them to run in
-Node's built-in test runner.
+Phase 4 adds a local incident workflow on top of detections. Phase 5 adds summary generation. The backend builds a restricted evidence packet containing selected incident metadata, alert fields, and allowlisted event fields. Unknown keys are discarded. The packet is hashed and its SHA-256 fingerprint is stored with the summary.
 
-Phase 4 adds an incident workflow on top of the detection engine. Alerts remain
-generated from real uploaded, pasted, imported, or live-collected events. An analyst can
-then create a local incident record from an alert and manage the case without sending
-data outside the machine.
+If `OPENAI_API_KEY` is present, the backend uses the OpenAI Responses API with strict JSON-schema Structured Outputs and `store: false`. Without a key, a deterministic local provider produces a clearly labeled evidence-only summary. The frontend never receives or stores the API key.
 
 ## Incident Data Model
 
-Incidents are stored in SQLite by migration `003_incidents.sql`.
-
-| Field | Purpose |
-| --- | --- |
-| `title` | Human-readable incident name from the source alert |
-| `severity` | Low, Medium, or High |
-| `status` | New, Investigating, Contained, Resolved, or False Positive |
-| `owner` | Analyst or team responsible for the case |
-| `source_name` | File, paste, or live channel that produced the alert |
-| `alert_id` | Browser detection alert identifier |
-| `rule_id` | Detection rule that produced the alert |
-| `mitre_id` | MITRE ATT&CK technique ID |
-| `risk_score` | Numeric score at creation time |
-| `payload` | Saved alert evidence and context |
-| `notes` | Analyst notes as JSON |
-| `timeline` | Creation, update, and note history as JSON |
-
-## Normalized Event Fields
-
-Phase 3 expands the normalized event model used by the browser rule engine and the
-Windows/EVTX collector.
-
-| Field | Common source examples |
-| --- | --- |
-| `eventId` | Windows event ID or Sysmon event ID |
-| `user` | `TargetUserName`, `SubjectUserName`, `user` |
-| `sourceIp` | `IpAddress`, `SourceNetworkAddress`, `ClientAddress` |
-| `destinationIp` | `DestinationIp`, `DestinationIpAddress` |
-| `destinationPort` | `DestinationPort`, `DestPort` |
-| `process` | `Image`, `NewProcessName` |
-| `parentProcess` | `ParentImage`, `ParentProcessName` |
-| `command` | `CommandLine`, `ScriptBlockText` |
-| `logonType` | Windows `LogonType` |
-| `targetFilename` | Sysmon `TargetFilename` |
-| `registryKey` | Sysmon `TargetObject`, Windows `ObjectName` |
-| `serviceName` | Windows `ServiceName` |
-| `hash` | Sysmon `Hashes`, `Hash` |
-| `group` | Group membership events |
-| `privileges` | `PrivilegeList` |
-| `message` | Rendered event message |
+Incidents are stored by migration `003_incidents.sql`. Summary versions are stored separately by `004_incident_summaries.sql`, preserving provider, model, creation time, evidence fingerprint, and structured output.
 
 ## API v2
 
 | Method | Path | Purpose |
 | --- | --- | --- |
-| GET | `/api/v2/status` | Service capabilities and version |
-| GET | `/api/v2/analyses` | List saved analyses |
-| GET | `/api/v2/analyses/{id}` | Open one saved analysis |
-| POST | `/api/v2/analyses` | Save a completed analysis |
-| GET | `/api/v2/incidents` | List saved incidents |
-| GET | `/api/v2/incidents/{id}` | Open one incident with notes and timeline |
-| POST | `/api/v2/incidents` | Create an incident from an alert |
-| POST | `/api/v2/incidents/{id}/update` | Update status, severity, owner, or title |
+| GET | `/api/v2/status` | Service capabilities, version, and AI provider status |
+| GET/POST | `/api/v2/analyses` | List or save analyses |
+| GET | `/api/v2/analyses/{id}` | Open a saved analysis |
+| GET/POST | `/api/v2/incidents` | List or create incidents |
+| GET | `/api/v2/incidents/{id}` | Open an incident with notes, timeline, and summaries |
+| POST | `/api/v2/incidents/{id}/update` | Update incident workflow fields |
 | POST | `/api/v2/incidents/{id}/notes` | Add an investigation note |
+| GET/POST | `/api/v2/incidents/{id}/summaries` | List or generate summary versions |
 | GET | `/api/v2/events/windows` | Collect a Windows event channel |
 | POST | `/api/v2/imports/evtx` | Parse an uploaded EVTX file |
-| POST | `/api/v2/checkpoints/reset` | Reset a channel checkpoint |
-| GET | `/api/v2/rules` | List built-in and custom rules |
-| GET | `/api/v2/rules/{id}` | Read one rule |
-| POST | `/api/v2/rules` | Create or update a custom rule |
-| POST | `/api/v2/rules/toggle` | Enable or disable a rule |
-| POST | `/api/v2/rules/delete` | Delete a custom rule |
-| GET | `/api/v2/detection-settings` | Read allowlists and engine tuning |
-| POST | `/api/v2/detection-settings` | Save allowlists and engine tuning |
-
-Errors use this shape:
-
-```json
-{
-  "error": {
-    "code": "invalid_payload",
-    "message": "Analysis payload is missing required fields.",
-    "details": {
-      "missing": ["events"]
-    },
-    "requestId": "..."
-  }
-}
-```
+| GET/POST | `/api/v2/rules` | List or save detection rules |
+| GET/POST | `/api/v2/detection-settings` | Read or save engine tuning |
 
 ## Configuration
 
@@ -125,3 +60,6 @@ Errors use this shape:
 | `SENTINELOPS_V2_LOG_LEVEL` | `INFO` |
 | `SENTINELOPS_V2_MAX_UPLOAD_BYTES` | `104857600` |
 | `SENTINELOPS_V2_MAX_EVENTS` | `5000` |
+| `OPENAI_API_KEY` | Empty; local evidence-only mode |
+| `SENTINELOPS_OPENAI_MODEL` | `gpt-5.5` |
+| `SENTINELOPS_AI_TIMEOUT_SECONDS` | `45` |
