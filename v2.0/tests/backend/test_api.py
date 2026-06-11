@@ -2,6 +2,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from backend.ai_summary import SummaryEngine
 from backend.api import Api
 from backend.config import Settings
 from backend.database import Database
@@ -26,7 +27,12 @@ class ApiTests(unittest.TestCase):
         self.database.migrate()
         self.rules = RuleRepository(self.database)
         self.rules.seed_builtin_rules()
-        self.api = Api(self.settings, self.database, self.rules)
+        self.api = Api(
+            self.settings,
+            self.database,
+            self.rules,
+            SummaryEngine(self.settings),
+        )
 
     def tearDown(self):
         self.temporary.cleanup()
@@ -113,6 +119,14 @@ class ApiTests(unittest.TestCase):
         )
         self.assertEqual(status, 200)
         self.assertEqual(noted["notes"][0]["author"], "Sparsh")
+
+        summary, status = self.api.post_json(
+            f"/api/v2/incidents/{created['id']}/summaries", {}
+        )
+        self.assertEqual(status, 201)
+        self.assertEqual(summary["provider"], "local-evidence")
+        opened, _ = self.api.get(f"/api/v2/incidents/{created['id']}", "")
+        self.assertEqual(opened["summaries"][0]["id"], summary["id"])
 
 
 if __name__ == "__main__":
