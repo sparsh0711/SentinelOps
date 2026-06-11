@@ -25,4 +25,6 @@ test("incident workflow state starts empty", () => {
   assert.deepEqual(store.get().incidents, []);
   assert.equal(store.get().selectedIncident, null);
   assert.equal(store.get().incidentFilter, "");
+  assert.equal(store.get().summaryGenerating, false);
+  assert.equal(store.get().aiSummary.dataLeavesDevice, false);
 });
