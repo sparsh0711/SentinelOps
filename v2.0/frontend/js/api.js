@@ -65,4 +65,9 @@ export const api = {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(note),
   }),
+  generateIncidentSummary: (id) => request(`/incidents/${encodeURIComponent(id)}/summaries`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: "{}",
+  }),
 };
