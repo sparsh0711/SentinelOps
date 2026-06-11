@@ -22,7 +22,12 @@ class DatabaseTests(unittest.TestCase):
             ).fetchall()
         self.assertEqual(
             [row["version"] for row in versions],
-            ["001_initial", "002_detection_rules", "003_incidents"],
+            [
+                "001_initial",
+                "002_detection_rules",
+                "003_incidents",
+                "004_incident_summaries",
+            ],
         )
 
     def test_analysis_round_trip(self):
@@ -76,6 +81,30 @@ class DatabaseTests(unittest.TestCase):
         )
         self.assertEqual(noted["notes"][0]["text"], "Checked source host.")
         self.assertGreaterEqual(len(noted["timeline"]), 3)
+
+        saved = self.database.save_incident_summary(
+            incident["id"],
+            {
+                "provider": "local-evidence",
+                "model": "deterministic-v1",
+                "evidenceHash": "a" * 64,
+                "summary": {
+                    "executiveSummary": "Evidence summary.",
+                    "technicalSummary": "Technical summary.",
+                    "suspiciousBehaviour": [],
+                    "mitreTechniques": [],
+                    "riskExplanation": "Stored score only.",
+                    "investigationSteps": [],
+                    "containmentActions": [],
+                    "evidenceLimitations": [],
+                },
+            },
+        )
+        self.assertEqual(saved["provider"], "local-evidence")
+        self.assertEqual(
+            self.database.get_incident(incident["id"])["summaries"][0]["id"],
+            saved["id"],
+        )
 
 
 if __name__ == "__main__":
