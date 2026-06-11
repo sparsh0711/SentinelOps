@@ -2,6 +2,7 @@ import logging
 from functools import partial
 from http.server import ThreadingHTTPServer
 
+from .ai_summary import SummaryEngine
 from .api import Api
 from .config import Settings
 from .database import Database
@@ -17,7 +18,7 @@ def create_server(settings=None):
     database.migrate()
     rules = RuleRepository(database)
     rules.seed_builtin_rules()
-    api = Api(settings, database, rules)
+    api = Api(settings, database, rules, SummaryEngine(settings))
     handler = partial(SentinelHandler, api=api, settings=settings)
     return ThreadingHTTPServer((settings.host, settings.port), handler)
 
