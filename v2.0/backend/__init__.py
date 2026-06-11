@@ -1,3 +1,3 @@
-"""SentinelOps v2 Phase 5 backend."""
+"""SentinelOps v2 Phase 6 backend."""
 
-__version__ = "2.0.0-alpha.5"
+__version__ = "2.0.0-alpha.6"
