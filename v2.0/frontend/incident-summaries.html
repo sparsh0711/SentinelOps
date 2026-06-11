@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SentinelOps v2 - AI Incident Summaries</title>
+  <style>
+    :root{color-scheme:dark;font-family:Inter,Segoe UI,sans-serif;background:#07111f;color:#e5edf7}
+    *{box-sizing:border-box}body{margin:0;padding:32px;background:radial-gradient(circle at top,#11233d,#07111f 50%)}
+    main{max-width:1180px;margin:auto}.top{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:24px}
+    h1,h2,h3{margin:0 0 10px}p{color:#9fb1c7}.badge{padding:8px 12px;border:1px solid #294661;border-radius:999px;color:#8fd3ff}
+    .layout{display:grid;grid-template-columns:330px 1fr;gap:18px}.card{background:#0c1a2b;border:1px solid #20364d;border-radius:16px;padding:18px;box-shadow:0 16px 40px #0005}
+    button,select{width:100%;padding:11px;border-radius:9px;border:1px solid #35516d;background:#12263c;color:#eef6ff;margin-top:9px}
+    button{cursor:pointer;background:#1687d9;border-color:#1687d9;font-weight:700}button:disabled{opacity:.5;cursor:wait}
+    .incident{padding:12px;border:1px solid #263d55;border-radius:10px;margin:9px 0;cursor:pointer}.incident:hover,.incident.active{border-color:#3fa9f5;background:#10263c}
+    .meta{font-size:12px;color:#8ba0b8}.section{border-top:1px solid #20364d;padding-top:15px;margin-top:15px}.section:first-child{border:0;margin-top:0;padding-top:0}
+    ul,ol{margin:8px 0;padding-left:22px}li{margin:7px 0;color:#c8d5e3}.empty{padding:48px;text-align:center;color:#91a5bb}
+    .risk{font-weight:800}.High{color:#ff7d7d}.Medium{color:#ffd166}.Low{color:#70e1a1}code{font-size:11px;color:#90abc5;word-break:break-all}
+    @media(max-width:800px){body{padding:16px}.layout{grid-template-columns:1fr}.top{align-items:flex-start;flex-direction:column}}
+  </style>
+</head>
+<body>
+<main>
+  <div class="top"><div><h1>AI Incident Summary Engine</h1><p>Phase 5 summaries grounded only in saved incident evidence.</p></div><span class="badge" id="provider">Checking provider...</span></div>
+  <div class="layout">
+    <aside class="card"><h2>Incidents</h2><select id="status"><option value="">All statuses</option><option>New</option><option>Investigating</option><option>Contained</option><option>Resolved</option><option>False Positive</option></select><button id="refresh">Refresh incidents</button><div id="incidents"></div></aside>
+    <section class="card"><div id="content" class="empty">Select an incident to review or generate its summary.</div></section>
+  </div>
+</main>
+<script>
+const api='/api/v2';
+const $=id=>document.getElementById(id);
+const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let selected=null;
+async function request(path,options={}){const response=await fetch(api+path,{headers:{'Content-Type':'application/json'},...options});const body=await response.json();if(!response.ok)throw new Error(body.error?.message||'Request failed');return body}
+async function loadStatus(){try{const data=await request('/status');const ai=data.aiSummary||{};$('provider').textContent=ai.configured?`OpenAI: ${ai.model}`:'Local evidence mode';}catch{$('provider').textContent='Provider unavailable'}}
+async function loadIncidents(){const status=$('status').value;const data=await request('/incidents'+(status?`?status=${encodeURIComponent(status)}`:''));$('incidents').innerHTML=data.incidents.length?data.incidents.map(item=>`<div class="incident ${selected===item.id?'active':''}" data-id="${item.id}"><strong>${esc(item.title)}</strong><div class="meta"><span class="risk ${esc(item.severity)}">${esc(item.severity)}</span> | ${esc(item.status)} | Risk ${esc(item.risk_score)}/100</div></div>`).join(''):'<p>No incidents saved.</p>';$('incidents').querySelectorAll('.incident').forEach(node=>node.onclick=()=>openIncident(Number(node.dataset.id)))}
+function list(values,ordered=false){if(!values?.length)return '<p>No evidence-backed items were produced.</p>';const tag=ordered?'ol':'ul';return `<${tag}>${values.map(value=>`<li>${esc(value)}</li>`).join('')}</${tag}>`}
+function renderSummary(item){return `<div class="section"><h3>Executive summary</h3><p>${esc(item.executiveSummary)}</p></div><div class="section"><h3>Technical investigation summary</h3><p>${esc(item.technicalSummary)}</p></div><div class="section"><h3>Suspicious behaviour</h3>${list(item.suspiciousBehaviour)}</div><div class="section"><h3>MITRE ATT&CK</h3>${item.mitreTechniques?.length?item.mitreTechniques.map(t=>`<p><strong>${esc(t.id)} ${esc(t.name)}</strong><br>${esc(t.evidence)}</p>`).join(''):'<p>No MITRE mapping was present in the evidence.</p>'}</div><div class="section"><h3>Risk explanation</h3><p>${esc(item.riskExplanation)}</p></div><div class="section"><h3>Investigation steps</h3>${list(item.investigationSteps,true)}</div><div class="section"><h3>Containment and remediation</h3>${list(item.containmentActions,true)}</div><div class="section"><h3>Evidence limitations</h3>${list(item.evidenceLimitations)}</div><div class="section meta">Provider: ${esc(item.provider)} / ${esc(item.model)}<br>Created: ${esc(item.createdAt)}<br><code>${esc(item.evidenceHash)}</code></div>`}
+async function openIncident(id){selected=id;await loadIncidents();const item=await request(`/incidents/${id}`);const latest=item.summaries?.[0];$('content').innerHTML=`<h2>${esc(item.title)}</h2><p><span class="risk ${esc(item.severity)}">${esc(item.severity)}</span> | ${esc(item.status)} | Risk ${esc(item.risk_score)}/100</p><button id="generate">${latest?'Regenerate':'Generate'} incident summary</button><div id="summary">${latest?renderSummary(latest):'<div class="empty">No summary generated yet.</div>'}</div>`;$('generate').onclick=generate}
+async function generate(){const button=$('generate');button.disabled=true;button.textContent='Generating...';try{const item=await request(`/incidents/${selected}/summaries`,{method:'POST',body:'{}'});$('summary').innerHTML=renderSummary(item);button.textContent='Regenerate incident summary';}catch(error){$('summary').innerHTML=`<p class="High">${esc(error.message)}</p>`;button.textContent='Try again'}finally{button.disabled=false}}
+$('refresh').onclick=loadIncidents;$('status').onchange=loadIncidents;loadStatus();loadIncidents();
+</script>
+</body>
+</html>
