@@ -19,10 +19,11 @@ from .windows import ALLOWED_CHANNELS, collect, parse_evtx
 
 
 class Api:
-    def __init__(self, settings, database, rules):
+    def __init__(self, settings, database, rules, summary_engine=None):
         self.settings = settings
         self.database = database
         self.rules = rules
+        self.summary_engine = summary_engine
 
     def get(self, path, query):
         params = parse_qs(query)
@@ -33,6 +34,9 @@ class Api:
                 "platform": os.name,
                 "windowsCollection": os.name == "nt",
                 "api": "/api/v2",
+                "aiSummary": self.summary_engine.status()
+                if self.summary_engine
+                else {"configured": False, "provider": "unavailable"},
             }, 200
         if path == "/api/v2/analyses":
             limit = bounded_int(
@@ -45,6 +49,12 @@ class Api:
             )
             status = params.get("status", [""])[0] or None
             return {"incidents": self.database.list_incidents(limit, status)}, 200
+        if path.startswith("/api/v2/incidents/") and path.endswith("/summaries"):
+            incident_id = self._extract_nested_id(path, "incidents", "summaries")
+            self.database.get_incident(incident_id)
+            return {
+                "summaries": self.database.list_incident_summaries(incident_id)
+            }, 200
         if path.startswith("/api/v2/incidents/"):
             try:
                 incident_id = int(path.rsplit("/", 1)[-1])
@@ -100,6 +110,19 @@ class Api:
         if path == "/api/v2/incidents":
             incident = validate_incident(payload)
             return self.database.create_incident(incident), 201
+        if path.startswith("/api/v2/incidents/") and path.endswith("/summaries"):
+            if not self.summary_engine:
+                raise ApiError(
+                    "Incident summary engine is unavailable.",
+                    status=503,
+                    code="ai_unavailable",
+                )
+            incident_id = self._extract_nested_id(path, "incidents", "summaries")
+            incident = self.database.get_incident(incident_id)
+            generated = self.summary_engine.generate(incident)
+            return self.database.save_incident_summary(
+                incident_id, generated
+            ), 201
         if path.startswith("/api/v2/incidents/") and path.endswith("/update"):
             incident_id = self._extract_nested_id(path, "incidents", "update")
             patch = validate_incident_update(payload)
