@@ -117,6 +117,21 @@ class ValidationTests(unittest.TestCase):
         with self.assertRaises(ApiError):
             validate_incident_note({"text": ""})
 
+    def test_correlated_incident_preserves_alerts_and_events(self):
+        incident = validate_incident(
+            {
+                "title": "Correlated activity",
+                "sourceName": "events.json",
+                "alerts": [
+                    {"title": "Failed login", "severity": "Medium"},
+                    {"title": "PowerShell", "severity": "High"},
+                ],
+                "evidence": [{"eventId": "4625"}, {"eventId": "4104"}],
+            }
+        )
+        self.assertEqual(len(incident["alerts"]), 2)
+        self.assertEqual(len(incident["evidence"]), 2)
+
 
 if __name__ == "__main__":
     unittest.main()
