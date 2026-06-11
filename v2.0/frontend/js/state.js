@@ -10,6 +10,13 @@ const initialState = () => ({
   selectedIncident: null,
   incidentFilter: "",
   incidentError: "",
+  summaryGenerating: false,
+  aiSummary: {
+    configured: false,
+    provider: "local-evidence",
+    model: "deterministic-v1",
+    dataLeavesDevice: false,
+  },
   detectionSettings: {
     allowlists: { users: [], hosts: [], sourceIps: [], processes: [] },
     suppressionWindowSeconds: 300,
