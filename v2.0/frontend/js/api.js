@@ -1,73 +1,9 @@
 import { API_BASE } from "./config.js";
-
-async function request(path, options = {}) {
-  const response = await fetch(`${API_BASE}${path}`, options);
-  let payload;
-  try {
-    payload = await response.json();
-  } catch {
-    throw new Error("The local service returned an invalid response.");
-  }
-  if (!response.ok) {
-    throw new Error(payload.error?.message || `Request failed (${response.status}).`);
-  }
-  return payload;
-}
-
-export const api = {
-  status: () => request("/status"),
-  saveAnalysis: (analysis) => request("/analyses", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(analysis),
-  }),
-  importEvtx: (file, maximum = 5000) => request(`/imports/evtx?max=${maximum}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/octet-stream", "X-Filename": encodeURIComponent(file.name) },
-    body: file,
-  }),
-  listRules: () => request("/rules"),
-  saveRule: (rule) => request("/rules", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(rule),
-  }),
-  toggleRule: (id, enabled) => request("/rules/toggle", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, enabled }),
-  }),
-  deleteRule: (id) => request("/rules/delete", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id }),
-  }),
-  getDetectionSettings: () => request("/detection-settings"),
-  saveDetectionSettings: (settings) => request("/detection-settings", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(settings),
-  }),
-  listIncidents: (status = "") => request(`/incidents${status ? `?status=${encodeURIComponent(status)}` : ""}`),
-  getIncident: (id) => request(`/incidents/${encodeURIComponent(id)}`),
-  createIncident: (incident) => request("/incidents", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(incident),
-  }),
-  updateIncident: (id, patch) => request(`/incidents/${encodeURIComponent(id)}/update`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(patch),
-  }),
-  addIncidentNote: (id, note) => request(`/incidents/${encodeURIComponent(id)}/notes`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(note),
-  }),
-  generateIncidentSummary: (id) => request(`/incidents/${encodeURIComponent(id)}/summaries`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: "{}",
-  }),
+async function request(path,options={}){const response=await fetch(`${API_BASE}${path}`,options);let payload;try{payload=await response.json()}catch{throw new Error("The local service returned an invalid response.")}if(!response.ok)throw new Error(payload.error?.message||`Request failed (${response.status}).`);return payload}
+const json=(path,body)=>request(path,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+export const api={
+ status:()=>request("/status"),saveAnalysis:a=>json("/analyses",a),importEvtx:(f,m=5000)=>request(`/imports/evtx?max=${m}`,{method:"POST",headers:{"Content-Type":"application/octet-stream","X-Filename":encodeURIComponent(f.name)},body:f}),
+ listRules:()=>request("/rules"),saveRule:r=>json("/rules",r),toggleRule:(id,enabled)=>json("/rules/toggle",{id,enabled}),deleteRule:id=>json("/rules/delete",{id}),getDetectionSettings:()=>request("/detection-settings"),saveDetectionSettings:s=>json("/detection-settings",s),
+ listIncidents:(status="")=>request(`/incidents${status?`?status=${encodeURIComponent(status)}`:""}`),getIncident:id=>request(`/incidents/${encodeURIComponent(id)}`),createIncident:i=>json("/incidents",i),updateIncident:(id,p)=>json(`/incidents/${encodeURIComponent(id)}/update`,p),addIncidentNote:(id,n)=>json(`/incidents/${encodeURIComponent(id)}/notes`,n),generateIncidentSummary:id=>json(`/incidents/${encodeURIComponent(id)}/summaries`,{}),getInvestigationTimeline:id=>request(`/incidents/${encodeURIComponent(id)}/investigation-timeline`),createIncidentReport:(id,format)=>json(`/incidents/${encodeURIComponent(id)}/reports`,{format}),
+ listHunts:()=>request("/hunts"),runHunt:(huntId,events,sourceName)=>json("/hunts/run",{huntId,events,sourceName}),listIocs:()=>request("/iocs"),saveIoc:ioc=>json("/iocs",ioc),deleteIoc:id=>json("/iocs/delete",{id}),matchIocs:events=>json("/iocs/match",{events}),importSigma:text=>json("/rules/import-sigma",{text}),attackHeatmap:alerts=>json("/attack/heatmap",{alerts})
 };
