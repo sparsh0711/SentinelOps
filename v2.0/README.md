@@ -1,55 +1,50 @@
-# SentinelOps v2.0 Phase 4
+# SentinelOps v2.0 Phase 5
 
-SentinelOps v2.0 is developed separately from the stable root application.
+This is the clean Phase 5 build of SentinelOps v2.0, kept separate from the experimental AI assistant project.
 
-## Phase 1 Foundation
+## Completed Phases
 
-- [x] Modular Python backend
-- [x] Versioned `/api/v2` endpoints
-- [x] Environment-based configuration
-- [x] JSON structured logging
-- [x] Ordered SQLite migrations
-- [x] Consistent validation and API errors
-- [x] ES-module frontend
-- [x] Python and JavaScript tests
+### Phase 1 Foundation
+- Modular Python backend and versioned `/api/v2` endpoints
+- Environment configuration, structured logging, SQLite migrations, validation, ES-module frontend, and tests
 
-## Phase 2 Detection Engine
+### Phase 2 Detection Engine
+- Sigma-inspired JSON rules, custom rule persistence, thresholds, time windows, allowlists, suppression, confidence scores, overrides, and rule test bench
 
-- [x] Sigma-inspired JSON detection rules
-- [x] Built-in and custom rule persistence
-- [x] Rule enable, disable, update, delete, and JSON import
-- [x] Configurable event counts and time windows
-- [x] User, host, source IP, and process allowlists
-- [x] Duplicate alert suppression
-- [x] Confidence scoring and match explanations
-- [x] Severity and threshold overrides
-- [x] In-browser rule test bench
+### Phase 3 Windows And Sysmon Coverage
+- 15 built-in detections covering process creation, PowerShell, LOLBins, suspicious network connections, registry autoruns, file drops, Defender tampering, log clearing, services, account changes, and RDP
 
-## Phase 3 Windows And Sysmon Coverage
+### Phase 4 Incident Workflow
+- SQLite incident cases with status, severity, owner, evidence, notes, timeline, filtering, and dashboard details
 
-- [x] Expanded built-in rule pack from 4 rules to 15 rules
-- [x] Sysmon process creation detections for LOLBins and suspicious parent-child chains
-- [x] Sysmon network connection detections for scripting tools making outbound traffic
-- [x] Sysmon registry autorun persistence detections
-- [x] Sysmon suspicious file-drop detections in user-writable folders
-- [x] Defender tamper and security-control modification detections
-- [x] Security log clear, service installation, account manipulation, and RDP logon detections
-- [x] Additional normalized fields for parent process, logon type, destination, registry, file, service, and hash data
+### Phase 5 AI Incident Summary Engine
+- Executive and technical summaries
+- Suspicious behaviour explanation based only on saved evidence
+- MITRE ATT&CK mappings already present in evidence
+- Stored-risk explanation
+- Investigation and conditional containment/remediation actions
+- Evidence limitations and SHA-256 evidence fingerprint
+- Summary history in SQLite
+- Correlated incidents containing multiple alerts and events
+- Optional OpenAI Responses API with strict Structured Outputs
+- Private local evidence-only mode when no API key is configured
 
-## Phase 4 Incident Workflow
+## AI Configuration
 
-- [x] Create incidents from real detection alerts
-- [x] Store incidents locally in SQLite
-- [x] Track status: New, Investigating, Contained, Resolved, and False Positive
-- [x] Track severity, owner, source, alert ID, rule ID, MITRE ID, and risk score
-- [x] Add analyst investigation notes
-- [x] Maintain a case timeline for creation, updates, and notes
-- [x] Filter the incident queue by status
-- [x] Open incident details from the SOC dashboard
+The default mode does not send data outside the computer. To enable OpenAI summaries for the current PowerShell session:
+
+```powershell
+$env:OPENAI_API_KEY = "your-api-key"
+$env:SENTINELOPS_OPENAI_MODEL = "gpt-5.5"
+.\start.ps1
+```
+
+Never commit an API key or place one in the frontend. Cloud mode sends only a restricted evidence packet and requests use `store: false`.
 
 ## Run
 
 ```powershell
+cd v2.0
 .\start.ps1
 ```
 
@@ -66,25 +61,22 @@ Open `http://127.0.0.1:8081`.
 ```text
 v2.0/
 |-- backend/
+|   |-- ai_summary.py
 |   |-- api.py
 |   |-- app.py
 |   |-- config.py
 |   |-- database.py
-|   |-- server.py
+|   |-- rules.py
 |   |-- validation.py
-|   |-- windows.py
 |   `-- migrations/
 |-- frontend/
 |   |-- js/
 |   |-- styles/
 |   `-- index.html
-|-- tests/
-|   |-- backend/
-|   `-- frontend/
-|-- start.ps1
 |-- rules/
+|-- tests/
+|-- start.ps1
 `-- test.ps1
 ```
 
-See [docs/architecture.md](docs/architecture.md) for module responsibilities and
-[docs/detection-rules.md](docs/detection-rules.md) for the rule schema and coverage.
+See [docs/architecture.md](docs/architecture.md), [docs/detection-rules.md](docs/detection-rules.md), and [docs/ai-incident-summaries.md](docs/ai-incident-summaries.md).
