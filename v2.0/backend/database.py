@@ -170,7 +170,9 @@ class Database:
             ).fetchone()
         if not row:
             raise NotFoundError("Incident not found.")
-        return self._incident_from_row(row, include_payload=True)
+        incident = self._incident_from_row(row, include_payload=True)
+        incident["summaries"] = self.list_incident_summaries(incident_id)
+        return incident
 
     def create_incident(self, payload):
         now = utc_now()
@@ -286,3 +288,54 @@ class Database:
                 ),
             )
         return self.get_incident(incident_id)
+
+    def list_incident_summaries(self, incident_id, limit=20):
+        with self.connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT id, incident_id, created_at, provider, model,
+                       evidence_hash, payload
+                FROM incident_summaries
+                WHERE incident_id = ?
+                ORDER BY id DESC
+                LIMIT ?
+                """,
+                (incident_id, limit),
+            ).fetchall()
+        summaries = []
+        for row in rows:
+            summary = json.loads(row["payload"])
+            summary.update(
+                {
+                    "id": row["id"],
+                    "incidentId": row["incident_id"],
+                    "createdAt": row["created_at"],
+                    "provider": row["provider"],
+                    "model": row["model"],
+                    "evidenceHash": row["evidence_hash"],
+                }
+            )
+            summaries.append(summary)
+        return summaries
+
+    def save_incident_summary(self, incident_id, generated):
+        created_at = utc_now()
+        with self.connect() as connection:
+            cursor = connection.execute(
+                """
+                INSERT INTO incident_summaries (
+                    incident_id, created_at, provider, model,
+                    evidence_hash, payload
+                ) VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    incident_id,
+                    created_at,
+                    generated["provider"],
+                    generated["model"],
+                    generated["evidenceHash"],
+                    json.dumps(generated["summary"], ensure_ascii=False),
+                ),
+            )
+        summaries = self.list_incident_summaries(incident_id)
+        return next(item for item in summaries if item["id"] == cursor.lastrowid)
