@@ -4,12 +4,24 @@ A local-first Windows security log analyzer and SOC dashboard. SentinelOps proce
 real event data, identifies common attack patterns, maps findings to MITRE ATT&CK,
 and keeps analysis history on the local machine.
 
-![SentinelOps dashboard analyzing a public EVTX sample](dashboard-verification.png)
+## SentinelOps v2.0 In Action
 
-> **v2.0 development:** The completed Phase 1 foundation, Phase 2 detection
-> engine, Phase 3 Windows/Sysmon coverage, and Phase 4 incident workflow are available in
-> [`v2.0/`](v2.0/README.md). The application in the repository root remains the
-> stable v1 release.
+![SentinelOps v2.0 security overview, threat hunting, IOC matching, ATT&CK heatmap, and incident summary](assets/sentinelops-v2-showcase.webp)
+
+The v2.0 dashboard demonstrates the complete analyst workflow:
+
+- Correlated security detections and risk scoring
+- Failed-login and PowerShell threat hunting
+- Local IOC matching and MITRE ATT&CK heatmaps
+- Evidence-grounded incident summaries and investigation timelines
+
+The showcase uses safe synthetic telemetry created only to demonstrate the workflow.
+SentinelOps itself analyzes logs supplied by the user and does not ship with fictional findings.
+
+> **v2.0:** Phases 1-6 are available in [`v2.0/`](v2.0/README.md), including the
+> modular detection engine, Windows/Sysmon coverage, incident workflow, AI incident
+> summaries, threat hunting, IOC matching, Sigma import, timelines, and report export.
+> The application in the repository root remains the stable v1 release.
 
 ## Highlights
 
