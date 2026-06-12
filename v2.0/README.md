@@ -1,32 +1,110 @@
 # SentinelOps v2.0 Phase 6
 
-SentinelOps is a local-first security log analyzer and SOC dashboard built with Python, SQLite, and browser-native JavaScript.
+This is the clean Phase 6 build of SentinelOps v2.0. It is separated from later
+experimental work so the detection-engine version can be developed, tested, and
+published on its own.
 
-## Phase 6
+## Phase 1 Foundation
 
-- Six transparent threat-hunting queries covering failed logins, PowerShell abuse, privilege escalation, account creation, lateral movement, and reconnaissance
-- Local IOC lists for IP addresses, domains, hashes, usernames, and file paths
-- IOC matching against loaded event telemetry
-- Simple Sigma JSON/YAML conversion into SentinelOps detection rules
-- MITRE ATT&CK technique frequency heatmap
-- Chronological incident investigation timeline
-- Local HTML and PDF incident report export
-- SQLite hunt history and IOC persistence
+- [x] Modular Python backend
+- [x] Versioned `/api/v2` endpoints
+- [x] Environment-based configuration
+- [x] JSON structured logging
+- [x] Ordered SQLite migrations
+- [x] Consistent validation and API errors
+- [x] ES-module frontend
+- [x] Python and JavaScript tests
 
-Earlier phases include the modular API and database foundation, the detection engine, Windows/Sysmon coverage, incident workflow, and evidence-grounded AI incident summaries.
+## Phase 2 Detection Engine
 
-## Privacy
+- [x] Sigma-inspired JSON detection rules
+- [x] Built-in and custom rule persistence
+- [x] Rule enable, disable, update, delete, and JSON import
+- [x] Configurable event counts and time windows
+- [x] User, host, source IP, and process allowlists
+- [x] Duplicate alert suppression
+- [x] Confidence scoring and match explanations
+- [x] Severity and threshold overrides
+- [x] In-browser rule test bench
 
-Telemetry, IOC lists, hunt history, reports, and the default incident summaries remain local. OpenAI summaries are optional and only enabled when `OPENAI_API_KEY` is configured. API requests use a restricted evidence packet and `store: false`.
+## Phase 3 Windows And Sysmon Coverage
+
+- [x] Expanded built-in rule pack from 4 rules to 15 rules
+- [x] Sysmon process creation detections for LOLBins and suspicious parent-child chains
+- [x] Sysmon network connection detections for scripting tools making outbound traffic
+- [x] Sysmon registry autorun persistence detections
+- [x] Sysmon suspicious file-drop detections in user-writable folders
+- [x] Defender tamper and security-control modification detections
+- [x] Security log clear, service installation, account manipulation, and RDP logon detections
+- [x] Additional normalized fields for parent process, logon type, destination, registry, file, service, and hash data
+
+## Phase 4 Incident Workflow
+
+- [x] Create incidents from real detection alerts
+- [x] Store incidents locally in SQLite
+- [x] Track status: New, Investigating, Contained, Resolved, and False Positive
+- [x] Track severity, owner, source, alert ID, rule ID, MITRE ID, and risk score
+- [x] Add analyst investigation notes
+- [x] Maintain a case timeline for creation, updates, and notes
+- [x] Filter the incident queue by status
+- [x] Open incident details from the SOC dashboard
+
+## Phase 5 AI Incident Summary Engine
+
+- [x] Generate executive and technical incident summaries
+- [x] Explain suspicious behaviour using only saved alert and event evidence
+- [x] Report only MITRE ATT&CK mappings already present in the evidence
+- [x] Explain the stored risk level without inventing additional risk
+- [x] Recommend investigation and conditional containment actions
+- [x] Display evidence limitations and an evidence fingerprint
+- [x] Save summary history in SQLite
+- [x] Support correlated incidents containing multiple alerts and events
+- [x] Optional OpenAI Responses API with strict Structured Outputs
+- [x] Local evidence-only mode when no API key is configured
+
+## Phase 6 Threat Hunting And Detection Expansion
+
+- [x] Six built-in threat hunting queries
+- [x] Local IOC lists for IPs, domains, hashes, usernames, and file paths
+- [x] IOC matching against loaded event data
+- [x] Simple Sigma JSON/YAML conversion into SentinelOps rules
+- [x] MITRE ATT&CK frequency heatmap
+- [x] Chronological incident investigation timeline
+- [x] Local HTML and PDF incident report export
+- [x] SQLite hunt history and IOC persistence
+
+## Screenshots
+
+These screenshots use safe synthetic telemetry created only to demonstrate the
+workflow. SentinelOps does not ship with sample findings and analyzes logs supplied
+by the user.
+
+![SentinelOps v2.0 Phase 6 showing the security overview, threat hunting, IOC matching, ATT&CK heatmap, and incident summary](../assets/sentinelops-v2-showcase.webp)
+
+## AI Configuration
+
+The default mode does not send data outside the computer. To enable OpenAI summaries
+for the current PowerShell session:
+
+```powershell
+$env:OPENAI_API_KEY = "your-api-key"
+$env:SENTINELOPS_OPENAI_MODEL = "gpt-5.5"
+.\start.ps1
+```
+
+Never commit an API key or place one in the frontend. When cloud mode is enabled, the
+app sends a restricted evidence packet containing allowlisted incident, alert, and event
+fields. API requests use `store: false`.
 
 ## Run
 
 ```powershell
-cd v2.0
 .\start.ps1
 ```
 
-Open `http://127.0.0.1:8081`.
+Open `http://127.0.0.1:8082`.
+
+Port `8082` is used so this folder can run beside other SentinelOps builds.
 
 ## Test
 
@@ -34,4 +112,29 @@ Open `http://127.0.0.1:8081`.
 .\test.ps1
 ```
 
-See [docs/architecture.md](docs/architecture.md), [docs/detection-rules.md](docs/detection-rules.md), [docs/ai-incident-summaries.md](docs/ai-incident-summaries.md), and [docs/threat-hunting.md](docs/threat-hunting.md).
+## Structure
+
+```text
+v2.0/
+|-- backend/
+|   |-- api.py
+|   |-- app.py
+|   |-- config.py
+|   |-- database.py
+|   |-- rules.py
+|   |-- server.py
+|   |-- validation.py
+|   |-- windows.py
+|   `-- migrations/
+|-- frontend/
+|   |-- js/
+|   |-- styles/
+|   `-- index.html
+|-- rules/
+|-- tests/
+|-- start.ps1
+`-- test.ps1
+```
+
+See [docs/architecture.md](docs/architecture.md) for module responsibilities and
+[docs/detection-rules.md](docs/detection-rules.md) for the rule schema.

@@ -6,4 +6,5 @@
 *.sqlite3
 __pycache__/
 *.pyc
-test-logs/*.evtx
+**/test-logs/*.evtx
+experiments/
