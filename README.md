@@ -9,7 +9,7 @@ two clearly separated applications.
 | Version | Purpose | Run | Address |
 | --- | --- | --- | --- |
 | [SentinelOps v1.0](v1.0/README.md) | Original security log analyzer and SOC dashboard | `.\start-v1.ps1` | http://127.0.0.1:8080 |
-| [SentinelOps v2.0](v2.0/README.md) | Modular Phase 6 threat hunting and incident platform | `.\start-v2.ps1` | http://127.0.0.1:8082 |
+| [SentinelOps v2.0](v2.0/README.md) | Modular Phase 6 threat hunting and incident platform | `start-v2.cmd` | http://127.0.0.1:8082 |
 
 ## SentinelOps v1.0
 
@@ -28,7 +28,7 @@ Sysmon detections, incident case management, evidence-grounded AI summaries,
 threat hunting, local IOC matching, Sigma import, an ATT&CK heatmap,
 investigation timelines, and HTML/PDF reports.
 
-![SentinelOps v2.0 Phase 6 showcase](assets/sentinelops-v2-showcase.webp)
+![SentinelOps v2.0 Analyst Workbench](v2.0/docs/screenshots/01-analyst-workbench-overview.webp)
 
 [Open the v2.0 documentation](v2.0/README.md)
 
