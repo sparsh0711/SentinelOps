@@ -28,7 +28,7 @@ Sysmon detections, incident case management, evidence-grounded AI summaries,
 threat hunting, local IOC matching, Sigma import, an ATT&CK heatmap,
 investigation timelines, and HTML/PDF reports.
 
-![SentinelOps v2.0 Analyst Workbench](v2.0/docs/screenshots/01-analyst-workbench-overview.webp)
+![SentinelOps v2.0 Analyst Workbench](v2.0/docs/screenshots/01-analyst-workbench-overview-hq.png)
 
 [Open the v2.0 documentation](v2.0/README.md)
 
