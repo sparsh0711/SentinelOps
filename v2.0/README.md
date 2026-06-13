@@ -79,7 +79,9 @@ These screenshots use safe synthetic telemetry created only to demonstrate the
 workflow. SentinelOps does not ship with sample findings and analyzes logs supplied
 by the user.
 
-![SentinelOps v2.0 Phase 6 showing the security overview, threat hunting, IOC matching, ATT&CK heatmap, and incident summary](../assets/sentinelops-v2-showcase.webp)
+### Analyst Workbench
+
+![SentinelOps v2.0 Analyst Workbench showing correlated alerts, risk scoring, ATT&CK coverage, and the event timeline](docs/screenshots/01-analyst-workbench-overview.webp)
 
 ## AI Configuration
 
@@ -99,7 +101,7 @@ fields. API requests use `store: false`.
 ## Run
 
 ```powershell
-.\start.ps1
+..\start-v2.cmd
 ```
 
 Open `http://127.0.0.1:8082`.
