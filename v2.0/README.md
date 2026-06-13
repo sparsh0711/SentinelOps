@@ -81,7 +81,7 @@ by the user.
 
 ### Analyst Workbench
 
-![SentinelOps v2.0 Analyst Workbench showing correlated alerts, risk scoring, ATT&CK coverage, and the event timeline](docs/screenshots/01-analyst-workbench-overview-hq.png)
+![SentinelOps v2.0 Analyst Workbench showing correlated alerts, risk scoring, ATT&CK coverage, and the event timeline](docs/screenshots/01-analyst-workbench-overview.webp)
 
 ## AI Configuration
 
