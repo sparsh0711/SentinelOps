@@ -79,13 +79,25 @@ These screenshots use safe synthetic telemetry created only to demonstrate the
 workflow. SentinelOps does not ship with sample findings and analyzes logs supplied
 by the user.
 
-### Analyst Workbench
+### Command Center
 
-![SentinelOps v2.0 Analyst Workbench showing correlated alerts, risk scoring, ATT&CK coverage, and the event timeline](docs/screenshots/01-analyst-workbench-overview.webp)
+![SentinelOps v2.0 Command Center](docs/screenshots/01-new-command-center.png)
 
-### Command Center Detail
+### Incident Workbench
 
-![SentinelOps v2.0 command center with readable alert and ATT&CK details](docs/screenshots/02-command-center-detail.webp)
+![SentinelOps v2.0 Incident Workbench](docs/screenshots/02-new-incident-workbench.png)
+
+### Threat Hunting
+
+![SentinelOps v2.0 Threat Hunting](docs/screenshots/03-new-threat-hunting.png)
+
+### Detection Studio Simple Mode
+
+![SentinelOps v2.0 Detection Studio Simple Mode](docs/screenshots/04-new-detection-simple.png)
+
+### Detection Studio Advanced Mode
+
+![SentinelOps v2.0 Detection Studio Advanced Mode](docs/screenshots/05-new-detection-advanced.png)
 
 ## AI Configuration
 
