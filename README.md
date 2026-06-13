@@ -30,6 +30,10 @@ investigation timelines, and HTML/PDF reports.
 
 ![SentinelOps v2.0 Analyst Workbench](v2.0/docs/screenshots/01-analyst-workbench-overview.webp)
 
+### Detailed Dashboard View
+
+![SentinelOps v2.0 command center detail](v2.0/docs/screenshots/02-command-center-detail.webp)
+
 [Open the v2.0 documentation](v2.0/README.md)
 
 ## Repository Layout

@@ -83,6 +83,10 @@ by the user.
 
 ![SentinelOps v2.0 Analyst Workbench showing correlated alerts, risk scoring, ATT&CK coverage, and the event timeline](docs/screenshots/01-analyst-workbench-overview.webp)
 
+### Command Center Detail
+
+![SentinelOps v2.0 command center with readable alert and ATT&CK details](docs/screenshots/02-command-center-detail.webp)
+
 ## AI Configuration
 
 The default mode does not send data outside the computer. To enable OpenAI summaries
