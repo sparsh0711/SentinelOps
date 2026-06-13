@@ -28,11 +28,19 @@ Sysmon detections, incident case management, evidence-grounded AI summaries,
 threat hunting, local IOC matching, Sigma import, an ATT&CK heatmap,
 investigation timelines, and HTML/PDF reports.
 
-![SentinelOps v2.0 Analyst Workbench](v2.0/docs/screenshots/01-analyst-workbench-overview.webp)
+### Command Center
 
-### Detailed Dashboard View
+![SentinelOps v2.0 Command Center](v2.0/docs/screenshots/01-new-command-center.png)
 
-![SentinelOps v2.0 command center detail](v2.0/docs/screenshots/02-command-center-detail.webp)
+### Investigation And Detection Workspaces
+
+| Incident Workbench | Threat Hunting |
+| --- | --- |
+| ![SentinelOps v2.0 Incident Workbench](v2.0/docs/screenshots/02-new-incident-workbench.png) | ![SentinelOps v2.0 Threat Hunting](v2.0/docs/screenshots/03-new-threat-hunting.png) |
+
+| Detection Studio Simple Mode | Detection Studio Advanced Mode |
+| --- | --- |
+| ![SentinelOps v2.0 Detection Studio Simple Mode](v2.0/docs/screenshots/04-new-detection-simple.png) | ![SentinelOps v2.0 Detection Studio Advanced Mode](v2.0/docs/screenshots/05-new-detection-advanced.png) |
 
 [Open the v2.0 documentation](v2.0/README.md)
 
